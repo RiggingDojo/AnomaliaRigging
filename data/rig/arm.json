@@ -1,0 +1,16 @@
+{
+	"fk_controls": [], 
+
+	"jnt_arm_info": 
+	[
+		["shoulder", [-8.0, 0.0, 0.0]], 
+		["elbow", [0.0, 0.0, -2.0]], 
+		["wrist", [8.0, 0.0, 0.0]], 
+		["wristEnd", [10.0, 0.0, 0.0]]
+	], 
+
+	"jnt_prefix": 
+		["ikj_", "fkj_", "rigj_"],
+
+	"ik_controls": []
+}

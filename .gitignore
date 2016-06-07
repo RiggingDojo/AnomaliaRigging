@@ -1,0 +1,71 @@
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# =========================
+# Operating System Files
+# =========================
+
+# OSX
+# =========================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Python
+.pyc
+*.pyc
+
+
+#Maya swatch files
+.swatches
+*.swatches
+
+
+tests/week2_rig_arm.ma
+
+tests/.mayaSwatches/week2_rig_arm.ma.swatches
+
+tests/:Users:Shared:Autodesk:maya:2013:scripts
+
+tests/hello.py
+
+tests/hello.py
+
+tests/hello.py
+
+tests/ik_leg_tutorial.ma
+
+tests/maya_legTutorial.py
+tests/Python_101_S1_2016.sublime-project
+tests/Python_101_S1_2016.sublime-workspace
