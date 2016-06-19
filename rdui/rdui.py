@@ -53,14 +53,6 @@ class RDojo_UI:
         self.rigmodlist.append([mod for mod in rig_contents if '.pyc' not in mod and '.__init__' not in mod])
 
 
-        
-
-
-
-
-
-
-
 
     def ui(self, *args):
         '''Check if the UI exists'''

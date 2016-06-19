@@ -23,7 +23,7 @@ class RDojo_UI:
 
         # This dictionary will store all of the available rigging modules.
         self.rigmodlst = []
-        rigcontents = os.listdir(os.environ["RDOJO_DATA"]+ 'rig/')
+        rigcontents = os.listdir(os.environ["AR_DATA"]+ 'rig/')
         for mod in rigcontents:
             if '.pyc' not in mod or 'init' not in mod:
                 self.rigmodlst.append(mod)
