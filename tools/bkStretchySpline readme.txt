@@ -1,7 +1,14 @@
 Create a stretchy spline-like rig.
-Twist gets a little weird @ > 360 degrees
+CAUTION: Your skeleton MUST be well-oriented for stable use of the rigs.
+Improperly oriented skeletons result in strange flipping behavior.
 
 # how to use
+EASY:
+    Create a bkStretchySpline.SplineGui instance inside your rigging ui window!
+    The GUI is a wizard that lets you pick between the different spline creation options.
+    Simply prepare your parent widget, and call bkStretchySpline.SplineGui(parent).
+
+COMMAND LINE:
 rig = bkStretchySpline.SplineRig(args)
 
 args - all optional. Booleans default to None:
