@@ -12,6 +12,7 @@ import pymel.core as pmc
 import rigCtrlUtil as rcu
 import unittest
 from random import random
+from functools import partial
 
 """
 class Spline(SkeletonPart):
@@ -32,7 +33,7 @@ class Spline(SkeletonPart):
 #class SplineRig(RigPart):
 class SplineRig(object):
 	def __init__(self, name=None, jnts=[], stretchy=False, aim=False,
-							curve=False, ik=False, numCtrls=3):
+					curve=False, ik=False, numCtrls=3, ctrlStyle="circles"):
 		self.jnts = []
 		self.grps = []
 		self.locs = []
@@ -51,7 +52,9 @@ class SplineRig(object):
 			# rename jnts?
 		else:
 			self.name = jnts[0].name()
-		self.rigGrp = pmc.group(empty=True, n=self.name+"_SPLINE_GRP")
+
+		# group for all stuff besides joints & ctrls
+		self.rigGrp = pmc.group(empty=True, n=self.name+"_RIGGRP")
 
 		i = 1
 		for jnt in jnts:
@@ -70,19 +73,60 @@ class SplineRig(object):
 			except AttributeError:
 				pass
 
+		# curve
+		pts = [a.getTranslation(ws=True) for a in self.grps]
+		self.curve = pmc.curve(ep=pts)
+		self.curve.rename(self.name+"_CRV")
+		self.curve.setParent(self.rigGrp)
+
+		# ctrls
+		if ctrlStyle == "circles":
+			ctrlFunc = rcu.makeThickFkCtrl
+		elif ctrlStyle == "pins":
+			ctrlFunc = rcu.makePinCtrl
+		elif ctrlStyle == "boxes":
+			ctrlFunc = rcu.makeThickIkCtrl
+
+		if numCtrls < 2:
+			pmc.error("Requires more than one control object")
+			return
+		for n in range(numCtrls):
+			name = self.name+"_{num:02d}_CTRL".format(num=n+1)
+			ctrl = ctrlFunc(name=name)
+			ctrlGrp = pmc.group(ctrl, name=name+"GRP")
+			ctrlGrp.rotatePivot.set(0, 0, 0)
+			ctrlGrp.scalePivot.set(0, 0, 0)
+			self.ctrls.append(ctrl)
+			self.orientCtrlGrp(ctrlGrp, n / (numCtrls - 1.0))
+
 		# different rig methods depending on what kind of spline is desired
 		if stretchy:
 			self.makeStretchy()
 		if aim:
-			self.makeAim((curve and ik))
+			self.makeAim()
 		if curve:
 			self.attachGrpsToCurve(ik)
-			if not ik:
-				self.attachCurveToCtrls(numCtrls)
-				#pass
-		else:
-			self.normalCtrls(numCtrls)
+			#if not ik:
+			axis = self.jnts[1].translate.get().normal()
+			ax = ["x", "y", "z"]
+			for i in range(3):
+				if axis[i] > .99:
+					mainAxis = ax.pop(i).upper()
+					break
+			else:
+				pmc.error("Check joint orientation - translated along "
+					"multiple axes.")
 
+			self.attachCurveToCtrls(numCtrls, mainAxis)
+			# to add twist to groups
+			#func = partial(pmc.orientConstraint, skip=ax)
+			#self.ctrlsConstrainGroups(func)
+			self.ctrlsConstrainGroups(mainAxis)
+		else:
+			# if no curve, just do smoothstep parent constraints
+			self.ctrlsConstrainGroups()
+
+		# if root constrain (option)?
 		pmc.pointConstraint(self.grps[0], self.jnts[0], o=(0, 0, 0))
 
 
@@ -90,14 +134,11 @@ class SplineRig(object):
 		"""Creates splineIK system, delete everything but curve.
 		Creates PointOnCurve nodes to attaches the groups to
 		parameter along curve."""
-		ikNodes = pmc.ikHandle(sj=self.jnts[0], ee=self.jnts[-1], 
-								solver="ikSplineSolver")
-		self.curve = ikNodes.pop()
-		self.curve.rename(self.name+"_CRV")
-		self.curve.setParent(self.rigGrp)
-		if not ik:
-			# kill ik handle
-			pmc.delete(ikNodes[0])
+		if ik:
+			ikNodes = pmc.ikHandle(sj=self.jnts[0], ee=self.jnts[-1], 
+								solver="ikSplineSolver", createCurve=False,
+								curve=self.curve)
+		
 		endParam = self.curve.max.get()
 		for i, g in enumerate(self.grps):
 			onCurve = self.curve.closestPoint(g.translate.get())
@@ -110,46 +151,50 @@ class SplineRig(object):
 			poc.position.connect(g.translate)
 
 
-	def attachCurveToCtrls(self, num):
+	def attachCurveToCtrls(self, num, mainAxis):
 		"""Excellent way to control a curve without
 		the control objects floating away from the curve itself, 
 		the way clustering CVs would. Create num amount of ctrls,
 		evenly spaced along the curve, then JOINTS right on top of them.
-		parentConstrain joints to ctrls, and SKIN curve to joints."""
-		if num < 2:
-			pmc.error("Requires more than one control object")
-			return
+		parentConstrain joints to ctrls, and SKIN curve to joints.
+		TWISTING not included."""
 		cName = self.curve.name()
-		endParam = self.curve.max.get()
 		jnts = []
 		for i in range(num):
 			pmc.select(cl=True)
-			param = i * endParam / (num - 1.0)
-			ctrl = rcu.makePinCtrl(name=cName+"_CTRL{0}".format(i+1))
-			grp = pmc.group(n=cName+"_CTRLGRP{0}".format(i+1))
-			jnt = pmc.joint(n=cName+"_CTRLJNT{0}".format(i+1))
+			ctrl = self.ctrls[i]
+			jnt = pmc.joint(n=cName+"_{num:02d}_RIGJNT".format(num=i+1))
 			pmc.parentConstraint(ctrl, jnt, mo=False)
-			# move to correct place, orient correctly via matrix
-			self.orientCtrlGrp(grp, param)
-
+			# disconnect after constrain so that it is synchronized initially
+			#pmc.Attribute(jnt+".rotate"+mainAxis).disconnect()
 			jnts.append(jnt)
-			self.ctrls.append(ctrl)
-		jntGrp = pmc.group(jnts, n=cName+"_CTRLJNT_GRP")
+
+		jntGrp = pmc.group(jnts, n=cName+"_RIGJNT_GRP")
 		jntGrp.setParent(self.rigGrp)
 		# skin curve to joints - how to do it so that
-		# the influences are linear?
+		# the influences are smooth and even?
 		# iterate through every CV, weight based on distance
 		# from joint? Just trust it works okay?
 		pmc.skinCluster(jnts, self.curve, maximumInfluences=2)
 
 
-	def orientCtrlGrp(self, grp, param):
+	def orientCtrlGrp(self, grp, percent):
+		"""Given grp along self.curve at given param,
+		ensure the grp is oriented right:
+		with the rig's primary axis along the curve's tangent"""
+		param = percent * self.curve.getKnotDomain()[1]
 		pos = self.curve.getPointAtParam(param)
 		grp.translate.set(pos)
-		if param == 0.0:
-			param += 0.01
-		elif param == self.curve.max.get():
-			param -= 0.01
+		if percent == 0.0:
+			# just make it the same as the root joint
+			#grp.setMatrix(self.jnts[0].matrix.get())
+			pmc.delete(pmc.orientConstraint(self.jnts[0], grp, mo=False))
+			return
+		elif percent == 1.0:
+			# similarly, set matrix to end joint
+			#grp.setMatrix(self.jnts[-1].matrix.get())
+			pmc.delete(pmc.orientConstraint(self.jnts[-1], grp, mo=False))
+			return
 		axis = self.jnts[1].translate.get().normal()
 		arc = self.jnts[1].jointOrient.get().normal()
 		pmc.delete(pmc.tangentConstraint(self.curve, grp, aimVector=axis, upVector=arc,
@@ -178,36 +223,29 @@ class SplineRig(object):
 				mat[i] = crossAxis
 		grp.setMatrix(mat, ws=True)
 		grp.scale.set(1, 1, 1)
-		#"""
+		"""
 
 
-	def normalCtrls(self, num):
-		"""make given number of ctrls, evenly space them,
-		and evenly weight the parent constraints based on 
-		ratio of grps to numCtrls"""
-		pts = [a.getTranslation(ws=True) for a in self.grps]
-		self.curve = pmc.curve(ep=pts, name=self.name+"_CRV")
-		self.curve.setParent(self.rigGrp)
+	def ctrlsConstrainGroups(self, axis=None):
+		"""Create constraints ctrl -> grp
+		with smoothstep falloff, determined by
+		realtive positions along curve"""
 		maxU = self.curve.getKnotDomain()[1]
-		cParams = []
-		#npoc = pmc.nodetypes.NearestPointOnCurve()
-		for i in range(num):
-			c = rcu.makeThickFkCtrl(name=(self.name+"_CTRL"))
-			cGrp = pmc.group(c, name=(c.name()+"_GRP"))
-			# get param and move group into place
-			cParam = i / (num - 1.0) * maxU
-			self.orientCtrlGrp(cGrp, cParam)
-
-			self.ctrls.append(c)
-			cParams.append(cParam)
+		maxCtrl = len(self.ctrls) - 1.0
+		paramCtrlUnit = maxU / maxCtrl
 		for n, g in enumerate(self.grps):
-			gParam = self.curve.getParamAtPoint(pts[n])
+			gParam = self.curve.getParamAtPoint(g.getTranslation(ws=True))
 			for i, c in enumerate(self.ctrls):
-				cParam = cParams[i]
+				# paramter value of ctrl along curve
+				cParam = i * paramCtrlUnit
 				if cParam == gParam:
 					# edge case when grp is exactly at ctrl,
 					# for beginning and end at least
-					pmc.parentConstraint(c, g, maintainOffset=True)
+					if axis:
+						# means it's a direct connect
+						c.attr("rotate"+axis).connect(g.attr("rotate"+axis))
+					else:
+						pmc.parentConstraint(c, g, maintainOffset=True)
 					break
 				elif cParam > gParam:
 					# ensure grp is being constrained by only
@@ -215,60 +253,29 @@ class SplineRig(object):
 					# greater than gParam, and that ctrl and
 					# the previous one affect that g
 					prev = self.ctrls[i-1]
-					prevParam = cParams[i-1]
-					# calculate weight - a ratio of differences
-					# in parameter
-					span = cParam - prevParam
-					dist = cParam - gParam
-					wght = (span - dist) / span
-					pmc.parentConstraint(c, g, maintainOffset=True, 
-									weight=wght)
-					prevDist = gParam - prevParam
-					prevWght = (span - prevDist) / span
-					pmc.parentConstraint(prev, g, maintainOffset=True, 
-									weight=prevWght)
+					prevParam = (i - 1.0) * paramCtrlUnit
+					# smoothstep creates a more curve-like transition
+					wght = pmc.util.smoothstep(prevParam, cParam, gParam)
+					if axis:
+						blend = pmc.nodetypes.BlendColors()
+						c.attr("rotate"+axis).connect(blend.color1R)
+						prev.attr("rotate"+axis).connect(blend.color2R)
+						blend.blender.set(wght)
+						blend.outputR.connect(g.attr("rotate"+axis))
+					else:
+						pmc.parentConstraint(c, g, mo=True, weight=wght)
+						pmc.parentConstraint(prev, g, mo=True, weight=1.0 - wght)
 					break
-		pmc.delete(self.curve)
 
 
-	def makeCurveTwisty(self):
-		# possible ik system - make chain, duplicate.
-		# for each in duplicate, parent joint under group
-		# with 0 xforms, orientConstrain the IK chain
-
-		sel = pmc.ls(sl=True)
-		ikChain = pmc.duplicate(sel, po=True, rc=True)
-		ik = pmc.ikHandle(sj=ikChain[0], ee=ikChain[-1])
-		for i, j in enumerate(sel):
-		    g = pmc.group(empty=True)
-		    g.setParent(j.getParent())
-		    pmc.delete(pmc.parentConstraint(j, g, mo=False))
-		    j.setParent(g)
-		    pmc.orientConstraint(ikChain[i], g, o=(0, 0, 0))
-		    ctrl = rcu.makeThickIkCtrl()
-		    cg = pmc.group(ctrl)
-		    
-
-		# intergrate the "position" and "closest joint"
-		# functionality from variableFK into
-		# bkStretchySpline - giving the ability for each control
-		# to affect the GROUPS in a variable weighted way
-
-		# that would remove the need to use curve/ik -
-		# JUST pipe the same orientConstraint weights 
-		# which variableFK uses into the parentConstraint
-		# for each group
-
-
-	def makeAim(self, ik):
+	def makeAim(self):
 		"""Creates the aimConstraints joints for prevLoc to loc"""
 		# each SPAN
 		for i, jnt in enumerate(self.jnts):
 			grp = self.grps[i]
 			loc = self.locs[i]
 
-			if not ik:
-				pmc.orientConstraint(loc, jnt)
+			pmc.orientConstraint(loc, jnt, mo=False)
 			
 			if not i:
 				# if root joint, pointConstrain(?) and move along -
@@ -288,8 +295,11 @@ class SplineRig(object):
 			# values which can be piped into joint rotation
 			axis = jnt.translate.get().normal()
 			arc = jnt.jointOrient.get().normal()
+			wuo = prevGrp
+			#if not i:
+			#	wuo = self.ctrls[0]
 			aim = pmc.aimConstraint(loc, prevLoc, aimVector=axis, upVector=arc, 
-							worldUpVector=arc, worldUpObject=prevGrp, 
+							worldUpVector=arc, worldUpObject=wuo, 
 							wut="objectrotation")
 
 
@@ -348,6 +358,161 @@ class SplineRig(object):
 					return
 
 
+
+"""
+------------------------------------------------------------------------------
+##############################################################################
+------------------------------------------------------------------------------
+"""
+
+
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file 'C:\Users\Brendan\Dropbox\Maya Scripts\bkTools\SplineWizard.ui'
+#
+# Created: Tue Jul 05 14:45:26 2016
+#      by: pyside-uic 0.2.14 running on PySide 1.1.1
+#
+# WARNING! All changes made in this file will be lost!
+
+from PySide import QtCore, QtGui
+
+class Ui_SplineWizard(object):
+	def setupUi(self, SplineWizard):
+		SplineWizard.setObjectName("SplineWizard")
+		SplineWizard.resize(485, 153)
+		self.horizontalLayout_4 = QtGui.QHBoxLayout(SplineWizard)
+		self.horizontalLayout_4.setContentsMargins(3, 3, 3, 3)
+		self.horizontalLayout_4.setObjectName("horizontalLayout_4")
+		self.verticalLayout = QtGui.QVBoxLayout()
+		self.verticalLayout.setObjectName("verticalLayout")
+		self.methodGrp = QtGui.QGroupBox(SplineWizard)
+		self.methodGrp.setObjectName("methodGrp")
+		self.horizontalLayout_5 = QtGui.QHBoxLayout(self.methodGrp)
+		self.horizontalLayout_5.setObjectName("horizontalLayout_5")
+		self.methodAim = QtGui.QRadioButton(self.methodGrp)
+		self.methodAim.setChecked(True)
+		self.methodAim.setObjectName("methodAim")
+		self.horizontalLayout_5.addWidget(self.methodAim)
+		self.methodIK = QtGui.QRadioButton(self.methodGrp)
+		self.methodIK.setChecked(False)
+		self.methodIK.setObjectName("methodIK")
+		self.horizontalLayout_5.addWidget(self.methodIK)
+		self.verticalLayout.addWidget(self.methodGrp)
+		self.ctrlGrp = QtGui.QGroupBox(SplineWizard)
+		self.ctrlGrp.setObjectName("ctrlGrp")
+		self.horizontalLayout_3 = QtGui.QHBoxLayout(self.ctrlGrp)
+		self.horizontalLayout_3.setObjectName("horizontalLayout_3")
+		self.numLabel = QtGui.QLabel(self.ctrlGrp)
+		self.numLabel.setObjectName("numLabel")
+		self.horizontalLayout_3.addWidget(self.numLabel)
+		self.ctrlNum = QtGui.QLineEdit(self.ctrlGrp)
+		sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Ignored, QtGui.QSizePolicy.Fixed)
+		sizePolicy.setHorizontalStretch(0)
+		sizePolicy.setVerticalStretch(0)
+		sizePolicy.setHeightForWidth(self.ctrlNum.sizePolicy().hasHeightForWidth())
+		self.ctrlNum.setSizePolicy(sizePolicy)
+		self.ctrlNum.setFrame(True)
+		self.ctrlNum.setObjectName("ctrlNum")
+		self.horizontalLayout_3.addWidget(self.ctrlNum)
+		self.styleLabel = QtGui.QLabel(self.ctrlGrp)
+		self.styleLabel.setObjectName("styleLabel")
+		self.horizontalLayout_3.addWidget(self.styleLabel)
+		self.ctrlStyle = QtGui.QComboBox(self.ctrlGrp)
+		self.ctrlStyle.setObjectName("ctrlStyle")
+		self.ctrlStyle.addItem("")
+		self.ctrlStyle.addItem("")
+		self.ctrlStyle.addItem("")
+		self.horizontalLayout_3.addWidget(self.ctrlStyle)
+		self.verticalLayout.addWidget(self.ctrlGrp)
+		self.horizontalLayout_4.addLayout(self.verticalLayout)
+		self.verticalLayout_2 = QtGui.QVBoxLayout()
+		self.verticalLayout_2.setObjectName("verticalLayout_2")
+		self.stretchyCheck = QtGui.QCheckBox(SplineWizard)
+		self.stretchyCheck.setChecked(True)
+		self.stretchyCheck.setObjectName("stretchyCheck")
+		self.verticalLayout_2.addWidget(self.stretchyCheck)
+		self.curveCheck = QtGui.QCheckBox(SplineWizard)
+		self.curveCheck.setChecked(True)
+		self.curveCheck.setObjectName("curveCheck")
+		self.verticalLayout_2.addWidget(self.curveCheck)
+		self.nameGrp = QtGui.QHBoxLayout()
+		self.nameGrp.setObjectName("nameGrp")
+		self.nameLabel = QtGui.QLabel(SplineWizard)
+		self.nameLabel.setObjectName("nameLabel")
+		self.nameGrp.addWidget(self.nameLabel)
+		self.nameField = QtGui.QLineEdit(SplineWizard)
+		self.nameField.setPlaceholderText("")
+		self.nameField.setObjectName("nameField")
+		self.nameGrp.addWidget(self.nameField)
+		self.verticalLayout_2.addLayout(self.nameGrp)
+		self.pushButton = QtGui.QPushButton(SplineWizard)
+		self.pushButton.setObjectName("pushButton")
+		self.verticalLayout_2.addWidget(self.pushButton)
+		self.horizontalLayout_4.addLayout(self.verticalLayout_2)
+
+		self.retranslateUi(SplineWizard)
+		QtCore.QMetaObject.connectSlotsByName(SplineWizard)
+
+
+	def retranslateUi(self, SplineWizard):
+		SplineWizard.setWindowTitle(QtGui.QApplication.translate("SplineWizard", "SplineWizard", None, QtGui.QApplication.UnicodeUTF8))
+		self.methodGrp.setTitle(QtGui.QApplication.translate("SplineWizard", "Joint Rotation Method:", None, QtGui.QApplication.UnicodeUTF8))
+		self.methodAim.setText(QtGui.QApplication.translate("SplineWizard", "aim constraints", None, QtGui.QApplication.UnicodeUTF8))
+		self.methodIK.setText(QtGui.QApplication.translate("SplineWizard", "maya IKSpline", None, QtGui.QApplication.UnicodeUTF8))
+		self.ctrlGrp.setTitle(QtGui.QApplication.translate("SplineWizard", "Controls:", None, QtGui.QApplication.UnicodeUTF8))
+		self.numLabel.setText(QtGui.QApplication.translate("SplineWizard", "Number:", None, QtGui.QApplication.UnicodeUTF8))
+		self.ctrlNum.setText(QtGui.QApplication.translate("SplineWizard", "3", None, QtGui.QApplication.UnicodeUTF8))
+		self.styleLabel.setText(QtGui.QApplication.translate("SplineWizard", "Style:", None, QtGui.QApplication.UnicodeUTF8))
+		self.ctrlStyle.setItemText(0, QtGui.QApplication.translate("SplineWizard", "circles", None, QtGui.QApplication.UnicodeUTF8))
+		self.ctrlStyle.setItemText(1, QtGui.QApplication.translate("SplineWizard", "pins", None, QtGui.QApplication.UnicodeUTF8))
+		self.ctrlStyle.setItemText(2, QtGui.QApplication.translate("SplineWizard", "boxes", None, QtGui.QApplication.UnicodeUTF8))
+		self.stretchyCheck.setText(QtGui.QApplication.translate("SplineWizard", "Stretchy", None, QtGui.QApplication.UnicodeUTF8))
+		self.curveCheck.setText(QtGui.QApplication.translate("SplineWizard", "Control with curve", None, QtGui.QApplication.UnicodeUTF8))
+		self.nameLabel.setText(QtGui.QApplication.translate("SplineWizard", "Limb name", None, QtGui.QApplication.UnicodeUTF8))
+		self.nameField.setText(QtGui.QApplication.translate("SplineWizard", "character_spine", None, QtGui.QApplication.UnicodeUTF8))
+		self.pushButton.setText(QtGui.QApplication.translate("SplineWizard", "Create Spline Rig", None, QtGui.QApplication.UnicodeUTF8))
+
+	
+	def customConnections(self):
+		# if no curve, IK is not an option.
+		# FALSE should automatically toggle aim w/ twist
+		self.curveCheck.toggled.connect(self.fixMethod)
+		# validator on num ctrls field
+		vldtr = QtGui.QIntValidator(2, 99)
+		self.ctrlNum.setValidator(vldtr)
+
+		self.pushButton.clicked.connect(self.makeSpline)
+
+
+	def fixMethod(self, curveState):
+		self.methodIK.setEnabled(curveState)
+		if not curveState:
+			self.methodAim.setEnabled(True)
+		
+
+	def makeSpline(self):
+		name = self.nameField.text()
+		stretchy = self.stretchyCheck.isChecked()
+		curve = self.curveCheck.isChecked()
+		aim = self.methodAim.isChecked()
+		ik = self.methodIK.isChecked()
+		numCtrls = int(self.ctrlNum.text())
+		ctrlStyle = self.ctrlStyle.currentText()
+
+		with rcu.MayaUndoChunkManager():
+			rig = SplineRig(name=name, stretchy=stretchy, curve=curve, 
+					aim=aim, ik=ik, numCtrls=numCtrls, ctrlStyle=ctrlStyle)
+
+
+
+# Easy creation of Spline creation wizard.
+# Just add to some window.
+class SplineGui(Ui_SplineWizard, QtGui.QWidget):
+	def __init__(self, parent=None):
+		super(SplineGui, self).__init__(parent)
+		self.setupUi(self)
+		self.customConnections()
 
 
 """
