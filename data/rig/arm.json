@@ -1,16 +1,68 @@
-{
-	"fk_controls": [], 
-
-	"jnt_arm_info": 
-	[
-		["shoulder", [-8.0, 0.0, 0.0]], 
-		["elbow", [0.0, 0.0, -2.0]], 
-		["wrist", [8.0, 0.0, 0.0]], 
-		["wristEnd", [10.0, 0.0, 0.0]]
-	], 
-
-	"jnt_prefix": 
-		["ikj_", "fkj_", "rigj_"],
-
-	"ik_controls": []
+{  
+   "fkcontrols":[  
+      "s_shoulder_FK_CTRL",
+      "s_elbow_FK_CTRL",
+      "s_wrist_FK_CTRL"
+   ],
+   "ikjnts":[  
+      "s_shoulder_IKJNT",
+      "s_elbow_IKJNT",
+      "s_wrist_IKJNT",
+      "s_wristEnd_IKJNT"
+   ],
+   "fkjnts":[  
+      "s_shoulder_FKJNT",
+      "s_elbow_FKJNT",
+      "s_wrist_FKJNT",
+      "s_wristEnd_FKJNT"
+   ],
+   "rigjnts":[  
+      "s_shoulder_RIGJNT",
+      "s_elbow_RIGJNT",
+      "s_wrist_RIGJNT",
+      "s_wristEnd_RIGJNT"
+   ],
+   "bindjnts":[  
+      "s_shoulder_JNT",
+      "s_elbow_JNT",
+      "s_wrist_JNT",
+      "s_wristEnd_JNT"
+   ],
+   "twistjnts":[  
+      "s_bicep_JNT",
+      "s_forearm_JNT"
+   ],
+   "positions":[  
+      [  
+         0.0,
+         0.0,
+         0.0
+      ],
+      [  
+         -1.0,
+         0.0,
+         2.0
+      ],
+      [  
+         0.0,
+         0.0,
+         4.0
+      ],
+      [  
+         0.0,
+         0.0,
+         6.0
+      ]
+   ],
+   "ikcontrols":[  
+      "s_arm_IK_CTRL",
+      "s_arm_IKH",
+      "s_arm_PV_CTRL"
+   ],
+   "settingscontrol":[  
+      "s_arm_SETTINGS_CTRL"
+   ],
+   "rootname":[  
+      "s_ARM"
+   ]
 }
