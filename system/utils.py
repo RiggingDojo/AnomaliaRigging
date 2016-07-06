@@ -16,7 +16,7 @@ def readJson(fileName):
 
 def createJoint(name, position, instance):
     # Use a list comprehension to build joints.
-    jnt_list = [cmds.joint(n=name[i].replace('_s_', instance), p=position[i]) for i in range(len(name))]
+    jnt_list = [cmds.joint(n=name[i].replace('s_', instance), p=position[i]) for i in range(len(name))]
     cmds.select(d=True)
     return(jnt_list)
 
@@ -29,12 +29,12 @@ def createControl(ctrlinfo):
         # Get ws position of the joint
         pos = info[0]
         # Create circle control object
-        ctrl_file = os.environ["RDOJO_DATA"]+ 'controls/' + info[2]
-        print ctrl_file
+        ctrl_file = os.environ["AR_DATA"]+ 'controls/' + info[2]
+ 
          # Import a control object
         cmds.file(ctrl_file, i=True)
         ctrl = info[1]
-        ctrlgrp = 'grp_' + info[1]
+        ctrlgrp = info[1] + '_GRP'
         if cmds.objExists('grp_control') == True:
             cmds.rename('grp_control', ctrlgrp )
             cmds.rename('control', ctrl)

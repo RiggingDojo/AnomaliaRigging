@@ -5,16 +5,16 @@ import system.utils as utils
 reload(utils)
 
 # The UI class
-class RDojo_UI:
+class AR_UI:
 
     def __init__(self, *args):
-        print 'In RDojo_UI'
+        print 'In AR_UI'
         mi = cmds.window('MayaWindow', ma=True, q=True)
         for m in mi:
             if m == 'RDojo_Menu':
                 cmds.deleteUI('RDojo_Menu', m=True)
 
-        mymenu = cmds.menu('RDojo_Menu', label='RDMenu', to=True, p='MayaWindow')
+        mymenu = cmds.menu('AR_Menu', label='ARMenu', to=True, p='MayaWindow')
         cmds.menuItem(label='Rig Tool', parent=mymenu, command=self.ui)
 
         """ Create a dictionary to store UI elements.
@@ -59,7 +59,7 @@ class RDojo_UI:
         cmds.separator(w=10, hr=True, st='none', p=self.UIElements["guiFlowLayout1"])
         # Make a menu for left, right and center sides.
         # We will query the value later.
-        sides = ['_L_', '_R_', '_C_']
+        sides = ['L_', 'R_', 'C_']
         self.UIElements["sideMenu"] = cmds.optionMenu('Side', label='side', p=self.UIElements["guiFlowLayout1"]) 
         for s in sides:
             cmds.menuItem(label=s, p=self.UIElements["sideMenu"])    
@@ -68,15 +68,13 @@ class RDojo_UI:
         modfile = cmds.optionMenu(self.UIElements["rigMenu"], q=True, v=True) 
         cmds.separator(w=10, hr=True, st='none', p=self.UIElements["guiFlowLayout1"])
         self.UIElements["rigbutton"] = cmds.button(label="Rig", width=buttonWidth, height=buttonHeight, bgc=[0.2, 0.4, 0.2], p=self.UIElements["guiFlowLayout1"], c=partial(self.rigmod, modfile))
-        
-        # IK_FK match button
-        self.UIElements["ikfkmatchbutton"] = cmds.button(label="Match", width=buttonWidth, height=buttonHeight, bgc=[0.2, 0.4, 0.2], p=self.UIElements["guiFlowLayout1"], c=utils.match_ikfk)
+
+        cmds.separator(w=10, hr=True, st='none', p=self.UIElements["guiFlowLayout1"])
+        self.UIElements["facebutton"] = cmds.button(label="Face", width=buttonWidth, height=buttonHeight, bgc=[0.2, 0.4, 0.2], p=self.UIElements["guiFlowLayout1"], c=self.loadFaceTools)
 
         """ Show the window"""
         cmds.showWindow(windowName)
-
-
-        
+      
     def rigmod(self, modfile, *args):
         """__import__ basically opens a module and reads some info from it 
             without actually loading the module in memory."""
@@ -91,3 +89,9 @@ class RDojo_UI:
         # getattr will get an attribute from a class
         moduleClass = getattr(mod, mod.classname)
         moduleInstance = moduleClass(self.uiinfo[0])
+
+    def loadFaceTools(self, *args):
+        import tools.face_rigger as fg
+        reload(fg)
+        face = fg.Face_Rigger()
+        face.ui()
