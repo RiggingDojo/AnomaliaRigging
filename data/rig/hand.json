@@ -1,0 +1,45 @@
+{
+	"index":
+	[
+		{"JOINT":"s_indexFinger_01_JNT", "FK_CTRL":"s_indexFinger_01_FK_CTRL", "SDK": "s_indexFinger_01_SDK", "CTRL_GRP":"s_indexFinger_01_CTRL_GRP", "SDK_NAME": "index_01"},
+		{"JOINT":"s_indexFinger_02_JNT", "FK_CTRL":"s_indexFinger_02_FK_CTRL", "SDK": "s_indexFinger_02_SDK", "CTRL_GRP":"s_indexFinger_02_CTRL_GRP", "SDK_NAME": "index_02"},
+		{"JOINT":"s_indexFinger_03_JNT", "FK_CTRL":"s_indexFinger_03_FK_CTRL", "SDK": "s_indexFinger_03_SDK", "CTRL_GRP":"s_indexFinger_03_CTRL_GRP", "SDK_NAME": "index_03"},
+		{"JOINT":"s_indexFinger_04_JNT", "FK_CTRL":"s_indexFinger_04_FK_CTRL", "SDK": "s_indexFinger_04_SDK", "CTRL_GRP":"s_indexFinger_04_CTRL_GRP", "SDK_NAME": "index_04"},
+		{"JOINT":"s_indexFinger_05_END", "FK_CTRL":"", "SDK": "", "CTRL_GRP":"", "SDK_NAME": ""}
+	],
+	"middle":
+	[
+		{"JOINT":"s_middleFinger_01_JNT", "FK_CTRL":"s_middleFinger_01_FK_CTRL", "SDK": "s_middleFinger_01_SDK", "CTRL_GRP":"s_middleFinger_01_CTRL_GRP", "SDK_NAME": "middle_01"},
+		{"JOINT":"s_middleFinger_02_JNT", "FK_CTRL":"s_middleFinger_02_FK_CTRL", "SDK": "s_middleFinger_02_SDK", "CTRL_GRP":"s_middleFinger_02_CTRL_GRP", "SDK_NAME": "middle_02"},
+		{"JOINT":"s_middleFinger_03_JNT", "FK_CTRL":"s_middleFinger_03_FK_CTRL", "SDK": "s_middleFinger_03_SDK", "CTRL_GRP":"s_middleFinger_03_CTRL_GRP", "SDK_NAME": "middle_03"},
+		{"JOINT":"s_middleFinger_04_JNT", "FK_CTRL":"s_middleFinger_04_FK_CTRL", "SDK": "s_middleFinger_04_SDK", "CTRL_GRP":"s_middleFinger_04_CTRL_GRP", "SDK_NAME": "middle_04"},
+		{"JOINT":"s_middleFinger_05_END", "FK_CTRL":"", "SDK": "", "CTRL_GRP":"", "SDK_NAME": ""}
+	],
+	"ring":
+	[
+		{"JOINT":"s_ringFinger_01_JNT", "FK_CTRL":"s_ringFinger_01_FK_CTRL", "SDK": "s_ringFinger_01_SDK", "CTRL_GRP":"s_ringFinger_01_CTRL_GRP", "SDK_NAME": "ring_01"},
+		{"JOINT":"s_ringFinger_02_JNT", "FK_CTRL":"s_ringFinger_02_FK_CTRL", "SDK": "s_ringFinger_02_SDK", "CTRL_GRP":"s_ringFinger_02_CTRL_GRP", "SDK_NAME": "ring_02"},
+		{"JOINT":"s_ringFinger_03_JNT", "FK_CTRL":"s_ringFinger_03_FK_CTRL", "SDK": "s_ringFinger_03_SDK", "CTRL_GRP":"s_ringFinger_03_CTRL_GRP", "SDK_NAME": "ring_03"},
+		{"JOINT":"s_ringFinger_04_JNT", "FK_CTRL":"s_ringFinger_04_FK_CTRL", "SDK": "s_ringFinger_04_SDK", "CTRL_GRP":"s_ringFinger_04_CTRL_GRP", "SDK_NAME": "ring_04"},
+		{"JOINT":"s_ringFinger_05_END", "FK_CTRL":"", "SDK": "", "CTRL_GRP":"", "SDK_NAME": ""}
+	],
+	"pinky":
+	[
+		{"JOINT":"s_pinkyFinger_01_JNT", "FK_CTRL":"s_pinkyFinger_01_FK_CTRL", "SDK": "s_pinkyFinger_01_SDK", "CTRL_GRP":"s_pinkyFinger_01_CTRL_GRP", "SDK_NAME": "pinky_01"},
+		{"JOINT":"s_pinkyFinger_02_JNT", "FK_CTRL":"s_pinkyFinger_02_FK_CTRL", "SDK": "s_pinkyFinger_02_SDK", "CTRL_GRP":"s_pinkyFinger_02_CTRL_GRP", "SDK_NAME": "pinky_02"},
+		{"JOINT":"s_pinkyFinger_03_JNT", "FK_CTRL":"s_pinkyFinger_03_FK_CTRL", "SDK": "s_pinkyFinger_03_SDK", "CTRL_GRP":"s_pinkyFinger_03_CTRL_GRP", "SDK_NAME": "pinky_03"},
+		{"JOINT":"s_pinkyFinger_04_JNT", "FK_CTRL":"s_pinkyFinger_04_FK_CTRL", "SDK": "s_pinkyFinger_04_SDK", "CTRL_GRP":"s_pinkyFinger_04_CTRL_GRP", "SDK_NAME": "pinky_04"},
+		{"JOINT":"s_pinkyFinger_05_END", "FK_CTRL":"", "SDK": "", "CTRL_GRP":"", "SDK_NAME": ""}
+	],
+
+	"thumb":
+	[
+		{"JOINT":"s_thumbFinger_01_JNT", "FK_CTRL":"s_thumbFinger_01_FK_CTRL", "SDK": "s_thumbFinger_01_SDK", "CTRL_GRP":"s_thumbFinger_01_CTRL_GRP", "SDK_NAME": "thumb_01"},
+		{"JOINT":"s_thumbFinger_02_JNT", "FK_CTRL":"s_thumbFinger_02_FK_CTRL", "SDK": "s_thumbFinger_02_SDK", "CTRL_GRP":"s_thumbFinger_02_CTRL_GRP", "SDK_NAME": "thumb_02"},
+		{"JOINT":"s_thumbFinger_03_JNT", "FK_CTRL":"s_thumbFinger_03_FK_CTRL", "SDK": "s_thumbFinger_03_SDK", "CTRL_GRP":"s_thumbFinger_03_CTRL_GRP", "SDK_NAME": "thumb_03"},
+		{"JOINT":"s_thumbFinger_04_END", "FK_CTRL":"", "SDK": "", "CTRL_GRP":"", "SDK_NAME": ""}
+
+	]
+
+
+}

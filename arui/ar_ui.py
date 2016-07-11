@@ -78,7 +78,8 @@ class AR_UI:
     def rigmod(self, modfile, *args):
         """__import__ basically opens a module and reads some info from it 
             without actually loading the module in memory."""
-        mod = __import__("rig."+modfile, {}, {}, [modfile])
+        currentValue = cmds.optionMenu(self.UIElements["rigMenu"], query=True, value=True)
+        mod = __import__("rig."+currentValue, {}, {}, [currentValue])
         reload(mod)
         print "The mod"
         print mod
