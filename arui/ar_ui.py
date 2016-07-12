@@ -72,6 +72,11 @@ class AR_UI:
         cmds.separator(w=10, hr=True, st='none', p=self.UIElements["guiFlowLayout1"])
         self.UIElements["facebutton"] = cmds.button(label="Face", width=buttonWidth, height=buttonHeight, bgc=[0.2, 0.4, 0.2], p=self.UIElements["guiFlowLayout1"], c=self.loadFaceTools)
 
+        # spline window
+        self.UIElements["spinebutton"] = cmds.button(label="Spine", width=buttonWidth, height=buttonHeight,
+                                                    bgc=[0.2, 0.4, 0.2], p=self.UIElements["guiFrameLayout1"], 
+                                                    c=self.loadSplineTool)
+
         """ Show the window"""
         cmds.showWindow(windowName)
       
@@ -95,3 +100,11 @@ class AR_UI:
         reload(fg)
         face = fg.Face_Rigger()
         face.ui()
+
+
+    def loadSplineTool(self, *args):
+        """create a spline rigging wizard window"""
+        from tools import bkStretchySpline as spl
+        reload(spl)
+        wizard = spl.makeGuiWindow()
+        return wizard

@@ -32,6 +32,7 @@ class Spline(SkeletonPart):
 """
 
 # naming conventions saved into spline.json file - CHANGE LOCATION
+classname = "SplineRig"
 rigDataFile = os.environ["AR_DATA"] + "data/rig/spline.json"
 
 
@@ -550,6 +551,13 @@ class SplineGui(Ui_SplineWizard, QtGui.QWidget):
 		self.setupUi(self)
 		self.customConnections()
 
+
+def makeGuiWindow():
+	main = rcu.getMayaMainWindow()
+	wizard = SplineGui(main)
+	wizard.setWindowFlags(QtCore.Qt.Window)
+	wizard.show()
+	return wizard
 
 """
 ------------------------------------------------------------------------------
