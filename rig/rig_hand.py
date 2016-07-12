@@ -531,13 +531,16 @@ numjnts = 1
 # run the hand rigging script from selection(s)
 selection = cmds.ls( selection=True )
 if len(selection) == 2:
-    hand = HandRigger("L")
+    hand = HandRigger("L") 
+    
+    
+    # COMMENTED OUT TO TEST
     #check if first selection is a transform & check if the second selection is a joint
-    if cmds.objectType(selection[0]) == "transform" and cmds.objectType(selection[1]) == "joint":
-        hand.createHandRig(selection[0], selection[1])
-    else:
-        errorMsg = "HandRigger Error: First selection must be wrist control, the second selection must be top parent joint of wrist."
-        sys.exit(errorMsg)
+    #if cmds.objectType(selection[0]) == "transform" and cmds.objectType(selection[1]) == "joint":
+    #    hand.createHandRig(selection[0], selection[1])
+    #else:
+    #    errorMsg = "HandRigger Error: First selection must be wrist control, the second selection must be top parent joint of wrist."
+    #    sys.exit(errorMsg)
 
 sys.stdout.write('HandRigger: Finished!')
 
