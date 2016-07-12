@@ -72,9 +72,16 @@ class AR_UI:
         cmds.separator(w=10, hr=True, st='none', p=self.UIElements["guiFlowLayout1"])
         self.UIElements["facebutton"] = cmds.button(label="Face", width=buttonWidth, height=buttonHeight, bgc=[0.2, 0.4, 0.2], p=self.UIElements["guiFlowLayout1"], c=self.loadFaceTools)
 
-        # spline window
+        # BK:
+        # create new row (flowLayout) for miscellaneous rigging tools,
+        # ie ones that need more user input than a single optionMenu of L_, R_, C_
+        self.UIElements["miscButtonLayout"] = cmds.flowLayout(v=False, width=windowWidth, height=windowHeight/4, 
+                                                    bgc=[0.2, 0.2, 0.2], p=self.UIElements["guiFrameLayout1"],
+                                                    wr=False, columnSpacing=8)
+        self.UIElements["miscLabel"] = cmds.text("Other Rigs: ", p=self.UIElements["miscButtonLayout"])
+        # spline button
         self.UIElements["spinebutton"] = cmds.button(label="Spine", width=buttonWidth, height=buttonHeight,
-                                                    bgc=[0.2, 0.4, 0.2], p=self.UIElements["guiFrameLayout1"], 
+                                                    bgc=[0.2, 0.4, 0.2], p=self.UIElements["miscButtonLayout"], 
                                                     c=self.loadSplineTool)
 
         """ Show the window"""
@@ -101,7 +108,7 @@ class AR_UI:
         face = fg.Face_Rigger()
         face.ui()
 
-
+    # BK:
     def loadSplineTool(self, *args):
         """create a spline rigging wizard window"""
         from tools import bkStretchySpline as spl

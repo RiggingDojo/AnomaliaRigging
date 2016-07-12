@@ -30,7 +30,7 @@ class MayaUndoChunkManager(object):
 
 def readFile(f):
 	with open(f, "r") as openF:
-	    data = openF.read()
+		data = openF.read()
 	return data
 
 
@@ -40,11 +40,11 @@ def getMayaMainWindow():
 	from maya.OpenMayaUI import MQtUtil
 	import shiboken
 	from PySide import QtGui
-    # returns a QWidget wrapper for the main maya window,
-    # to allow uiMaster to be parented to it
-    mayaWin = MQtUtil.mainWindow()
-    if mayaWin:
-        return shiboken.wrapInstance(long(mayaWin), QtGui.QMainWindow)
+	# returns a QWidget wrapper for the main maya window,
+	# to allow uiMaster to be parented to it
+	mayaWin = MQtUtil.mainWindow()
+	if mayaWin:
+		return shiboken.wrapInstance(long(mayaWin), QtGui.QMainWindow)
 
 
 # DOES NOT FREEZE TRANSFORMATIONS

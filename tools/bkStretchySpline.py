@@ -525,7 +525,7 @@ class Ui_SplineWizard(object):
 	def fixMethod(self, curveState):
 		self.methodIK.setEnabled(curveState)
 		if not curveState:
-			self.methodAim.setEnabled(True)
+			self.methodAim.setChecked(True)
 		
 
 	def makeSpline(self):
