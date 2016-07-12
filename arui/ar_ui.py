@@ -83,10 +83,10 @@ class AR_UI:
         reload(mod)
         print "The mod"
         print mod
-
+        
+        self.uiinfo[:] = []
         sideval = cmds.optionMenu(self.UIElements["sideMenu"], q=True, v=True) 
         self.uiinfo.append([sideval, modfile]) 
-
         # getattr will get an attribute from a class
         moduleClass = getattr(mod, mod.classname)
         moduleInstance = moduleClass(self.uiinfo[0])

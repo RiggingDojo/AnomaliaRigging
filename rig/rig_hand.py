@@ -41,7 +41,7 @@ class HandRigger(object):
         self.thumbJointList = None
         self.wristControl = ""
         self.metacarpalsPresent = False
-        self.handed = uiinfo[0]
+        self.handed = uiinfo[0].replace("_", "")
         
         # Get our joint lists from a json file.
         data_path = os.environ["AR_DATA"] + 'data/rig/hand.json'
@@ -49,9 +49,7 @@ class HandRigger(object):
         data = utils.readJson(data_path)
         # Load the json into a dictionary
         self.moduleInfo = json.loads( data )
-        
-        
-        
+                
     def errorMessage(self, str):
         errorMsg = "HandRigger Error: " + str
         sys.exit(errorMsg)
@@ -59,12 +57,14 @@ class HandRigger(object):
     
 
     def getJointChildren(self, root):
-        children = cmds.listRelatives(root, type="joint", children=True)
+        children = cmds.listRelatives(root, type="joint", children=True, path=True)
         return children
 
+
     def getJointDescendants(self, root):
-        descendents = cmds.listRelatives(root, allDescendents=True, type="joint")
-        descendents.reverse()
+        descendents = cmds.listRelatives(root, allDescendents=True, type="joint", path=True)
+        #descendents.reverse()
+
         return descendents
         
         
@@ -248,9 +248,7 @@ class HandRigger(object):
 
                 cmds.xform(controlGroup, a=True, ro=controlRot, t=controlWorldSp )
                 cmds.parentConstraint(controlObj, joint) 
-                
-                print controlGroup + " TO " + jointItem.parentControl
-                 
+                                 
                 cmds.parent(controlGroup, parentControl)
 
                         
@@ -344,7 +342,7 @@ class HandRigger(object):
         
     ########  create hand rig function   ########
     def createHandRig(self, wristControl, wristJoint):
-
+    
         self.wristJoint = wristJoint
         if wristControl:
             self.wristControl = wristControl
@@ -362,45 +360,63 @@ class HandRigger(object):
         for fingerInWrist in allFingersInWrist:
             # accounts for arbitrary number of fingers
             fingerJoints = self.getJointDescendants(fingerInWrist)
-            fingerJoints.insert(0, fingerInWrist)
-            parentJoint = self.wristJoint
-            parentControl = self.wristControl
             
-            jointIndex = 0;
+            fingerJoints.append(fingerInWrist)
+
+            jointIndex = len(fingerJoints)-1;
             fingerList = []
             fingerName = ""
 
             for joint in fingerJoints:
-                if jointIndex == 0:
-                    fingerName = joint
+                
+                if jointIndex == len(fingerJoints)-1:
+                    longName = fingerJoints[-1]
+                    
+                    fingerName = longName.split('|')[-1]
+                                        
                     seperator = "-------------"
                     cmds.addAttr(self.wristControl, ln=fingerName, enumName=seperator, at='enum', h=False, keyable=True)
                     cmds.setAttr(self.wristControl + "." + fingerName, lock=True )
+                    
+                    
+                    parentJoint = fingerJoints[:2]
+                    parentControl = self.moduleInfo[fingerName][jointIndex]["FK_CTRL"].replace('s_', self.handed + "_")
                 
+                elif jointIndex == 0:
+                    parentJoint = self.wristJoint
+                    parentControl = self.wristControl
+                
+                else:
+                    parentIndex = jointIndex - 1
+                    parentJoint = fingerJoints[parentIndex]
+                    parentControl = self.moduleInfo[fingerName][parentIndex]["FK_CTRL"].replace('s_', self.handed + "_")
+                    
+                    
                 hasChild = self.getJointChildren(joint)
                 hasChildFlag = True if hasChild else False
-                               
+                                   
                 jointName = self.moduleInfo[fingerName][jointIndex]["JOINT"].replace('s_', self.handed + "_")
                 fkCtrlName = self.moduleInfo[fingerName][jointIndex]["FK_CTRL"].replace('s_', self.handed + "_")
                 ctrlGrpName = self.moduleInfo[fingerName][jointIndex]["CTRL_GRP"].replace('s_', self.handed + "_")
                 sdkGroupName = self.moduleInfo[fingerName][jointIndex]["SDK"].replace('s_', self.handed + "_")
                 sdkName = self.moduleInfo[fingerName][jointIndex]["SDK_NAME"].replace('s_', self.handed + "_")
-                                           
+                                       
+                                      
                 #create the JointItem:
                               #(self, jointName, fkCtrlName, ctrlGrpName, sdkName, sdkGroupName, fingerIndex, parentJoint, parentControl, fingerName, hasChildren=True):
                 jointItem = JointItem(jointName, fkCtrlName, ctrlGrpName, sdkName, sdkGroupName, fingerIndex, parentJoint, parentControl, fingerName, hasChildFlag)
-                fingerList.append(jointItem)
                 
-                #set variables for next iteration and rename joint                     
+                #fingerList.append(jointItem)
+                fingerList.insert(0, jointItem)
+                
+                #set variables for next iteration and rename joint 
                 joint = cmds.rename(joint, jointItem.joint)
-                parentJoint = joint
-                parentControl = fkCtrlName
                 
                 ##### add base, mid, tip attributes to wrist control
                 if hasChildFlag:
                     cmds.addAttr(self.wristControl, ln=jointItem.sdkName, at='float', min=-10, max=10, h=False, keyable=True)
                 
-                jointIndex = jointIndex + 1
+                jointIndex = jointIndex - 1
                 
             self.wristFingersList[fingerName] = fingerList
 
@@ -422,85 +438,6 @@ class HandRigger(object):
             if finger == "thumb":
                 continue
             self.addAttributeToWrist(finger, "CUP", meta=1, base=1, mid=1, tip=1, end=0)
-            
-        '''            
-        # do orient joint operation on all joints in hierarchy
-        for finger in self.wristFingersList:
-            fingerJoints = self.wristFingersList[finger]
-            for jointIndex, jointItem in enumerate(fingerJoints):
-                
-                if jointItem is None:
-                    continue
-                
-                jointParent = jointItem.parentJoint
-                jointGrandparent = cmds.listRelatives(jointParent, parent=True)
-                
-                tempGroup = cmds.group( em=True, name='temp' )
-                cmds.parent(jointItem.joint, tempGroup)
-                cmds.rotate(0,0,0, jointParent)  
-                return 
-                if jointGrandparent: 
-                    cmds.parent(jointParent, tempGroup)
-                
-
-                #CALL ORIENTATION OF JOINTS
-                try:
-                    self.orientHandJointTo(jointItem.joint, jointParent, self.handed)
-                except:
-                    if jointGrandparent:
-                        cmds.parent(jointParent, jointGrandparent)
-                    cmds.parent(jointItem.joint, jointParent)
-                    cmds.delete(tempGroup)
-                    self.errorMessage("Could not perform orienting joints operation.")
-
-                if jointGrandparent:
-                    cmds.parent(jointParent, jointGrandparent)
-                    
-                cmds.parent(jointItem.joint, jointParent)
-                
-                if not jointItem.hasChildren:
-                    cmds.joint(jointItem.joint, edit=True, orientation=(0,0,0))
-                        
-                cmds.delete(tempGroup)
-                           
-            
-                   
-        if self.metacarpalsPresent:
-            tempGroup = cmds.group( em=True, name='temp' )
-            cmds.parent(self.thumbJointList["meta"].joint, tempGroup)
-            cmds.parent(self.thumbJointList["base"].joint, tempGroup)
-            
-            cmds.rotate(60, 0, 0, self.thumbJointList["meta"].joint)
-            cmds.makeIdentity(self.thumbJointList["meta"].joint, apply=True)  
-            
-            cmds.rotate(40, 0, 0, self.thumbJointList["base"].joint)
-            cmds.makeIdentity(self.thumbJointList["base"].joint, apply=True)  
-                            
-            cmds.parent(self.thumbJointList["meta"].joint, self.wristJoint)
-            cmds.parent(self.thumbJointList["base"].joint, self.thumbJointList["meta"].joint)
-            
-            cmds.delete(tempGroup)
-                                        
-        else:        
-            tempGroup = cmds.group( em=True, name='temp' )
-            cmds.parent(self.thumbJointList["base"].joint, tempGroup)
-            nextIndex = self.thumbJointList["base"].fingerIndex + 1
-            
-            childJointItem = self.getJointItemFromIndex(self.thumbJointList, nextIndex)             
-            cmds.parent(childJointItem.joint, tempGroup)
-            
-            cmds.rotate(90, 0, 0, self.thumbJointList["base"].joint)
-            cmds.makeIdentity(self.thumbJointList["base"].joint, apply=True)  
-            
-            cmds.rotate(90, 0, 0, childJointItem.joint)
-            cmds.makeIdentity(childJointItem.joint, apply=True)  
-                        
-            cmds.parent(self.thumbJointList["base"].joint, self.wristJoint)
-            cmds.parent(childJointItem.joint, self.thumbJointList["base"].joint)
-
-            cmds.delete(tempGroup)
-        '''
-        
         # add FK controls to fingers and connect the set driven keys so the SDK group
         self.addFKControlsToFingers()
         
@@ -528,19 +465,21 @@ classname = 'Rig_Hand'
 lytfile = 'hand.json'
 numjnts = 1
 
-# run the hand rigging script from selection(s)
-selection = cmds.ls( selection=True )
-if len(selection) == 2:
-    hand = HandRigger("L") 
-    
-    
-    # COMMENTED OUT TO TEST
-    #check if first selection is a transform & check if the second selection is a joint
-    #if cmds.objectType(selection[0]) == "transform" and cmds.objectType(selection[1]) == "joint":
-    #    hand.createHandRig(selection[0], selection[1])
-    #else:
-    #    errorMsg = "HandRigger Error: First selection must be wrist control, the second selection must be top parent joint of wrist."
-    #    sys.exit(errorMsg)
+class Rig_Hand:
+    def __init__(self, uiinfo):
+        # run the hand rigging script from selection(s)
+        selection = cmds.ls( selection=True )
+        if len(selection) == 2:
+            hand = HandRigger(uiinfo) 
+        
+            # COMMENTED OUT TO TEST
+            #check if first selection is a transform & check if the second selection is a joint
+            if cmds.objectType(selection[0]) == "transform" and cmds.objectType(selection[1]) == "joint":
+                hand.createHandRig(selection[0], selection[1])
+            else:
+                errorMsg = "HandRigger Error: First selection must be wrist control, the second selection must be top parent joint of wrist."
+                sys.exit(errorMsg)
 
-sys.stdout.write('HandRigger: Finished!')
+        sys.stdout.write('HandRigger: Finished!')
+        
 
