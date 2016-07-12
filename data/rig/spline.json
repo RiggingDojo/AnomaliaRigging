@@ -1,0 +1,30 @@
+{  
+   "root":
+      "C_spine",
+   "group":
+      "_RIG_GRP",
+   "joint":
+      "_JNT",
+   "locator":
+      "_LOC",
+   "locatorGroup":
+      "_LOC_GRP",
+   "curve":
+      "_CURVE_RIG",
+   "skinJoint":
+      "_RIGJNT",
+   "skinJointGroup":
+      "_RIGJNT_GRP",
+   "control":
+      "_CTRL",
+   "controlGroup":
+      "_CTRL_GRP",
+   "first":
+      "_pelvis",
+   "last":
+      "_chest",
+   "middle":
+      "_belly_{:02d}",
+   "ikHandle":
+      "_ikHandle"
+}

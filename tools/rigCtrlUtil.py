@@ -26,6 +26,12 @@ class MayaUndoChunkManager(object):
 		pmc.undoInfo(closeChunk=True)
 
 
+def readFile(f):
+	with open(f, "r") as openF:
+	    data = openF.read()
+	return data
+
+
 # DOES NOT FREEZE TRANSFORMATIONS
 # XFORMS NEED TO BE EQUAL FOR PREDICTABLE RESULTS
 #
@@ -208,7 +214,7 @@ def makeRibbon(jnts=[], axis="z"):
 		curves.append(c)
 		#pmc.skinCluster(j, c, maxInfluences=1)
 	#loft = pmc.loft(curves)
-	loft = pmc.loft(curves, ch=False)
+	loft = pmc.loft(curves, ch=False)[0]
 	pmc.delete(curves)
 	#pmc.skinCluster(jnts, loft, maximumInfluences=1)
 	return loft
@@ -246,6 +252,19 @@ def makeFollicle(oNurbs, uPos=0.0, vPos=0.0):
 	return oFoll
 
 
+def makeRibbonSpline(jnts=[], axis="z"):
+	if not jnts:
+		jnts = pmc.ls(sl=True)
+
+	loft = makeRibbon(jnts=jnts, axis=axis)
+	for i, j in enumerate(jnts):
+		u = 1.0 * i / (len(jnts) - 1.0)
+		foll = makeFollicle(loft, u, 0.5)
+
+		pmc.orientConstraint(foll.getParent(), j, mo=True)
+
+
+
 # print matrix in an easy-to-read way
 #
 def printMatrix(m):
@@ -256,6 +275,7 @@ def printMatrix(m):
 		for c in r:
 			t.append(float("{0:.3f}".format(c)))
 		print(t)
+
 
 class TesterThing(unittest.TestCase):
 	def setUp(self):
