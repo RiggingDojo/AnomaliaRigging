@@ -82,6 +82,7 @@ class SplineRig(object):
 
 		# group for all stuff besides joints & ctrls
 		self.rigGrp = pmc.group(empty=True, n=rd["root"]+rd["group"])
+		self.rigGrp.visibility.set(False)
 
 		for i, jnt in enumerate(jnts):
 			if type(jnt) == pmc.nodetypes.Joint:
@@ -157,6 +158,8 @@ class SplineRig(object):
 			#func = partial(pmc.orientConstraint, skip=ax)
 			#self.ctrlsConstrainGroups(func)
 			self.ctrlsConstrainGroups(mainAxis)
+			# final ctrl -> final jnt
+			pmc.orientConstraint(self.ctrls[-1], self.grps[-1], mo=False)
 		else:
 			# if no curve, just do smoothstep parent constraints
 			self.ctrlsConstrainGroups()
