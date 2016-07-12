@@ -20,10 +20,16 @@ A collection of utilities for building better rig controls:
 # is a single entry in the Maya undo queue
 #
 class MayaUndoChunkManager(object):
-    def __enter__(self):
-        pmc.undoInfo(openChunk=True)
-    def __exit__(self, *args):
-        pmc.undoInfo(closeChunk=True)
+	def __enter__(self):
+		pmc.undoInfo(openChunk=True)
+	def __exit__(self, *args):
+		pmc.undoInfo(closeChunk=True)
+
+
+def readFile(f):
+	with open(f, "r") as openF:
+	    data = openF.read()
+	return data
 
 
 # DOES NOT FREEZE TRANSFORMATIONS
@@ -97,7 +103,7 @@ def makePinCtrl(h=0.5, name="PIN_CTRL", axis=(0, 0, 1)):
 	#						ax=axis, r=h/4, hr=4)
 	
 	pts = ((0, 0, 0), (h/4, 0, h), (-h/4, 0, h), 
-	        (0, h/4, h), (0, -h/4, h))
+			(0, h/4, h), (0, -h/4, h))
 
 	curves = []
 	for i in range(len(pts)):
@@ -126,9 +132,9 @@ def addFKIKSwitchToCtrl(ctrl, shape=None, name="FK_IK_Switcher"):
 		shape = l.getShape()
 		shape.setAttr("visibility", False)
 		for a in shape.listAttr(cb=True):
-		    a.set(channelBox=False)
+			a.set(channelBox=False)
 		shape.addAttr("FK_IK_Switch", at="float", 
-	               		keyable=True, min=0, max=1.0)
+						keyable=True, min=0, max=1.0)
 	new = shape.setParent(ctrl, add=True, shape=True)
 	# shape is explicitly under original transform,
 	# so to reorder need the lastest shape under ctrl
@@ -194,53 +200,69 @@ def addOrientsToCtrl(noSnap=False):
 # create a lofted surface, and kill history...
 # or not? just skin "curves" to joints 1:1?
 #
-def makeRibbon(jnts, axis="z"):
-    offset = pmc.datatypes.Vector(
-                [float(a == axis.lower()) for a in ["x", "y", "z"]])
-    curves = []
-    for j in jnts:
-        if j.type() != "joint":
-            pmc.error("Invalid selection. Select joints only.")
-        pos = j.getTranslation(ws=True)
-        c = pmc.curve(d=1, p=[(pos+offset), (pos-offset)])
-        curves.append(c)
-        #pmc.skinCluster(j, c, maxInfluences=1)
-    #loft = pmc.loft(curves)
-    loft = pmc.loft(curves, ch=False)
-    pmc.skinCluster(jnts, loft, maxInfluences=1)
-    return loft
+def makeRibbon(jnts=[], axis="z"):
+	if not jnts:
+		jnts = pmc.ls(sl=True)
+	offset = pmc.datatypes.Vector(
+				[float(a == axis.lower()) for a in ["x", "y", "z"]])
+	curves = []
+	for j in jnts:
+		if j.type() != "joint":
+			pmc.error("Invalid selection. Select joints only.")
+		pos = j.getTranslation(ws=True)
+		c = pmc.curve(d=1, p=[(pos+offset), (pos-offset)])
+		curves.append(c)
+		#pmc.skinCluster(j, c, maxInfluences=1)
+	#loft = pmc.loft(curves)
+	loft = pmc.loft(curves, ch=False)[0]
+	pmc.delete(curves)
+	#pmc.skinCluster(jnts, loft, maximumInfluences=1)
+	return loft
 
 
 # pymel create single follicle script
 # by Chris Lesage
 def makeFollicle(oNurbs, uPos=0.0, vPos=0.0):
-    # manually place and connect a follicle onto a nurbs surface.
-    if oNurbs.type() == 'transform':
-        oNurbs = oNurbs.getShape()
-    elif oNurbs.type() == 'nurbsSurface':
-        pass
-    else:
-        'Warning: Input must be a nurbs surface.'
-        return False
-    
-    # create a name with frame padding
-    pName = '_'.join((oNurbs.name(),'follicle','#'.zfill(2)))
-    
-    oFoll = pmc.createNode('follicle', name=pName)
-    oNurbs.local.connect(oFoll.inputSurface)
-    # if using a polygon mesh, use this line instead.
-    # (The polygons will need to have UVs in order to work.)
-    #oMesh.outMesh.connect(oFoll.inMesh)
+	# manually place and connect a follicle onto a nurbs surface.
+	if oNurbs.type() == 'transform':
+		oNurbs = oNurbs.getShape()
+	elif oNurbs.type() == 'nurbsSurface':
+		pass
+	else:
+		'Warning: Input must be a nurbs surface.'
+		return False
+	
+	# create a name with frame padding
+	pName = '_'.join((oNurbs.name(),'follicle','#'.zfill(2)))
+	
+	oFoll = pmc.createNode('follicle', name=pName)
+	oNurbs.local.connect(oFoll.inputSurface)
+	# if using a polygon mesh, use this line instead.
+	# (The polygons will need to have UVs in order to work.)
+	#oMesh.outMesh.connect(oFoll.inMesh)
 
-    oNurbs.worldMatrix[0].connect(oFoll.inputWorldMatrix)
-    oFoll.outRotate.connect(oFoll.getParent().rotate)
-    oFoll.outTranslate.connect(oFoll.getParent().translate)
-    oFoll.parameterU.set(uPos)
-    oFoll.parameterV.set(vPos)
-    oFoll.getParent().t.lock()
-    oFoll.getParent().r.lock()
+	oNurbs.worldMatrix[0].connect(oFoll.inputWorldMatrix)
+	oFoll.outRotate.connect(oFoll.getParent().rotate)
+	oFoll.outTranslate.connect(oFoll.getParent().translate)
+	oFoll.parameterU.set(uPos)
+	oFoll.parameterV.set(vPos)
+	oFoll.getParent().t.lock()
+	oFoll.getParent().r.lock()
 
-    return oFoll
+	return oFoll
+
+
+def makeRibbonSpline(jnts=[], axis="z"):
+	if not jnts:
+		jnts = pmc.ls(sl=True)
+
+	loft = makeRibbon(jnts=jnts, axis=axis)
+	for i, j in enumerate(jnts):
+		u = 1.0 * i / (len(jnts) - 1.0)
+		foll = makeFollicle(loft, u, 0.5)
+
+		pmc.orientConstraint(foll.getParent(), j, mo=True)
+
 
 
 # print matrix in an easy-to-read way
@@ -253,6 +275,7 @@ def printMatrix(m):
 		for c in r:
 			t.append(float("{0:.3f}".format(c)))
 		print(t)
+
 
 class TesterThing(unittest.TestCase):
 	def setUp(self):
