@@ -274,6 +274,7 @@ class SplineRig(object):
 		maxCtrl = len(self.ctrls) - 1.0
 		paramCtrlUnit = maxU / maxCtrl
 		for n, g in enumerate(self.grps):
+			loc = self.locs[n]
 			gParam = self.curve.getParamAtPoint(g.getTranslation(ws=True))
 			for i, c in enumerate(self.ctrls):
 				# paramter value of ctrl along curve
@@ -282,8 +283,10 @@ class SplineRig(object):
 					# edge case when grp is exactly at ctrl,
 					# for beginning and end at least
 					if axis:
-						# means it's a direct connect
-						c.attr("rotate"+axis).connect(g.attr("rotate"+axis))
+						# means it's a direct connect to the LOC, 
+						# not the group
+						c.attr("rotate"+axis).connect(
+										loc.attr("rotate"+axis), force=True)
 					else:
 						pmc.parentConstraint(c, g, maintainOffset=True)
 					break
@@ -301,7 +304,8 @@ class SplineRig(object):
 						c.attr("rotate"+axis).connect(blend.color1R)
 						prev.attr("rotate"+axis).connect(blend.color2R)
 						blend.blender.set(wght)
-						blend.outputR.connect(g.attr("rotate"+axis))
+						blend.outputR.connect(
+										loc.attr("rotate"+axis), force=True)
 					else:
 						pmc.parentConstraint(c, g, mo=True, weight=wght)
 						pmc.parentConstraint(prev, g, mo=True, weight=1.0 - wght)
