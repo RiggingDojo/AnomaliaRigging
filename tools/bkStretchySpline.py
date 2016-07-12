@@ -13,6 +13,8 @@ import rigCtrlUtil as rcu
 import unittest
 from random import random
 from functools import partial
+import os
+import json
 
 """
 class Spline(SkeletonPart):
@@ -28,6 +30,9 @@ class Spline(SkeletonPart):
 	def _build(cls, parent=None, **args):
 		pass
 """
+
+# naming conventions saved into spline.json file - CHANGE LOCATION
+rigDataFile = os.environ["AR_DATA"] + "data/rig/spline.json"
 
 
 #class SplineRig(RigPart):
@@ -47,36 +52,58 @@ class SplineRig(object):
 			pmc.error("Not enough joints! Select or pass in two or more joints.")
 			return
 
-		if name:
-			self.name = name
-			# rename jnts?
+		# get naming conventions and stuff
+		if os.path.exists(rigDataFile):
+			self.rigData = json.loads(rcu.readFile(rigDataFile))
 		else:
-			self.name = jnts[0].name()
+			if not name:
+				name = "spline"
+			self.rigData = {
+				"root": name,
+				"group":"_RIG_GRP",
+				"joint": "_JNT",
+				"locator": "_LOC",
+				"locatorGroup": "_LOC_GRP",
+				"curve": "_CURVE_RIG",
+				"skinJoint": "_RIGJNT",
+				"skinJointGroup": "_RIGJNT_GRP",
+				"control": "_CTRL",
+				"controlGroup": "_CTRL_GRP",
+				"first": "_root",
+				"last": "_end",
+				"middle": "_mid_{:02d}",
+				"ikHandle": "_ikHandle"
+			}
+		#timesaver
+		rd = self.rigData
+
+		self.instanceData = {}
 
 		# group for all stuff besides joints & ctrls
-		self.rigGrp = pmc.group(empty=True, n=self.name+"_RIGGRP")
+		self.rigGrp = pmc.group(empty=True, n=rd["root"]+rd["group"])
 
-		i = 1
-		for jnt in jnts:
-			try:
-				if jnt.type() == "joint":
-					#jnt.rename(self.name+"_JNT{0}".format(i))
-					jName = jnt.name()
-					loc = pmc.spaceLocator(n=jName+"_LOC")
-					grp = pmc.group(n=jName+"_LOCGRP")
-					pmc.delete(pmc.parentConstraint(jnt, grp, mo=False))
-					self.jnts.append(jnt)
-					self.grps.append(grp)
-					self.locs.append(loc)
-					grp.setParent(self.rigGrp)
-					i+=1
-			except AttributeError:
-				pass
+		for i, jnt in enumerate(jnts):
+			if type(jnt) == pmc.nodetypes.Joint:
+				if i == 0:
+					jName = rd["root"]+rd["first"]
+				elif i == len(jnts)-1:
+					jName = rd["root"]+rd["last"]
+				else:
+					jName = rd["root"]+rd["middle"].format(i)
+
+				loc = pmc.spaceLocator(n=jName + rd["locator"])
+				grp = pmc.group(n=jName + rd["locatorGroup"])
+				pmc.delete(pmc.parentConstraint(jnt, grp, mo=False))
+				self.jnts.append(jnt)
+				self.grps.append(grp)
+				self.locs.append(loc)
+				grp.setParent(self.rigGrp)
+			else:
+				i-=1
 
 		# curve
 		pts = [a.getTranslation(ws=True) for a in self.grps]
-		self.curve = pmc.curve(ep=pts)
-		self.curve.rename(self.name+"_CRV")
+		self.curve = pmc.curve(ep=pts, n=rd["root"]+rd["curve"])
 		self.curve.setParent(self.rigGrp)
 
 		# ctrls
@@ -91,9 +118,16 @@ class SplineRig(object):
 			pmc.error("Requires more than one control object")
 			return
 		for n in range(numCtrls):
-			name = self.name+"_{num:02d}_CTRL".format(num=n+1)
-			ctrl = ctrlFunc(name=name)
-			ctrlGrp = pmc.group(ctrl, name=name+"GRP")
+			# naming edge cases for first and last controls
+			if n == 0:
+				cName = rd["root"]+rd["first"]
+			elif n == numCtrls-1:
+				cName = rd["root"]+rd["last"]
+			else:
+				cName = rd["root"]+rd["middle"].format(n)
+			ctrl = ctrlFunc(name=cName+rd["control"])
+			ctrlGrp = pmc.group(ctrl, name=cName+rd["controlGroup"])
+			# strange pinCtrl bug
 			ctrlGrp.rotatePivot.set(0, 0, 0)
 			ctrlGrp.scalePivot.set(0, 0, 0)
 			self.ctrls.append(ctrl)
@@ -136,8 +170,9 @@ class SplineRig(object):
 		parameter along curve."""
 		if ik:
 			ikNodes = pmc.ikHandle(sj=self.jnts[0], ee=self.jnts[-1], 
-								solver="ikSplineSolver", createCurve=False,
-								curve=self.curve)
+							solver="ikSplineSolver", createCurve=False,
+							curve=self.curve, 
+							n=self.rigData["root"]+self.rigData["ikHandle"])
 		
 		endParam = self.curve.max.get()
 		for i, g in enumerate(self.grps):
@@ -158,18 +193,19 @@ class SplineRig(object):
 		evenly spaced along the curve, then JOINTS right on top of them.
 		parentConstrain joints to ctrls, and SKIN curve to joints.
 		TWISTING not included."""
-		cName = self.curve.name()
 		jnts = []
 		for i in range(num):
 			pmc.select(cl=True)
 			ctrl = self.ctrls[i]
-			jnt = pmc.joint(n=cName+"_{num:02d}_RIGJNT".format(num=i+1))
+			jnt = pmc.joint(n=ctrl.name().replace(self.rigData["control"],
+												self.rigData["skinJoint"]))
 			pmc.parentConstraint(ctrl, jnt, mo=False)
 			# disconnect after constrain so that it is synchronized initially
 			#pmc.Attribute(jnt+".rotate"+mainAxis).disconnect()
 			jnts.append(jnt)
 
-		jntGrp = pmc.group(jnts, n=cName+"_RIGJNT_GRP")
+		jntGrp = pmc.group(jnts, 
+					n=self.rigData["root"]+self.rigData["skinJointGroup"])
 		jntGrp.setParent(self.rigGrp)
 		# skin curve to joints - how to do it so that
 		# the influences are smooth and even?
