@@ -90,14 +90,15 @@ class AR_UI:
     def rigmod(self, modfile, *args):
         """__import__ basically opens a module and reads some info from it 
             without actually loading the module in memory."""
-        mod = __import__("rig."+modfile, {}, {}, [modfile])
+        currentValue = cmds.optionMenu(self.UIElements["rigMenu"], query=True, value=True)
+        mod = __import__("rig."+currentValue, {}, {}, [currentValue])
         reload(mod)
         print "The mod"
         print mod
-
+        
+        self.uiinfo[:] = []
         sideval = cmds.optionMenu(self.UIElements["sideMenu"], q=True, v=True) 
         self.uiinfo.append([sideval, modfile]) 
-
         # getattr will get an attribute from a class
         moduleClass = getattr(mod, mod.classname)
         moduleInstance = moduleClass(self.uiinfo[0])
