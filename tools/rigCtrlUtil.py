@@ -4,6 +4,8 @@ import unittest
 """
 A collection of utilities for building better rig controls:
 - MayaUndoChunkManager
+- readFile
+- getMayaMainWindow
 - mergeShapes
 - makeThickFkCtrl
 - makeThickIkCtrl
@@ -28,8 +30,21 @@ class MayaUndoChunkManager(object):
 
 def readFile(f):
 	with open(f, "r") as openF:
-	    data = openF.read()
+		data = openF.read()
 	return data
+
+
+# Get maya main window for parenting
+#
+def getMayaMainWindow():
+	from maya.OpenMayaUI import MQtUtil
+	import shiboken
+	from PySide import QtGui
+	# returns a QWidget wrapper for the main maya window,
+	# to allow uiMaster to be parented to it
+	mayaWin = MQtUtil.mainWindow()
+	if mayaWin:
+		return shiboken.wrapInstance(long(mayaWin), QtGui.QMainWindow)
 
 
 # DOES NOT FREEZE TRANSFORMATIONS
