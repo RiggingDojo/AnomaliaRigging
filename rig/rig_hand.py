@@ -6,12 +6,6 @@ import pymel.core.datatypes as dt
 import sys
 from collections import OrderedDict
 
-from shiboken import wrapInstance
-from PySide import QtGui, QtCore
-from maya import OpenMayaUI as OpenMayaUI
-from maya.app.general.mayaMixin import MayaQWidgetDockableMixin
-from maya.OpenMayaUI import MQtUtil
-
 import json
 import os
 import system.utils as utils
