@@ -1,15 +1,15 @@
-//Maya ASCII 2016 scene
+//Maya ASCII 2014 scene
 //Name: RectangleControl.ma
 //Last modified: Mon, Jul 04, 2016 01:59:36 PM
 //Codeset: 1252
-requires maya "2016";
+requires maya "2014";
 requires -nodeType "ilrOptionsNode" -nodeType "ilrUIOptionsNode" -nodeType "ilrBakeLayerManager"
 		 -nodeType "ilrBakeLayer" "Turtle" "2016.0.0";
 requires "stereoCamera" "10.0";
 currentUnit -l centimeter -a degree -t film;
 fileInfo "application" "maya";
-fileInfo "product" "Maya 2016";
-fileInfo "version" "2016";
+fileInfo "product" "Maya 2014";
+fileInfo "version" "2014";
 fileInfo "cutIdentifier" "201502261600-953408";
 fileInfo "osv" "Microsoft Windows 7 Home Premium Edition, 64-bit Windows 7 Service Pack 1 (Build 7601)\n";
 createNode transform -s -n "persp";
