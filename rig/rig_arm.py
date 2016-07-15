@@ -69,6 +69,8 @@ class Rig_Arm:
         # Create Ik Rig
         # Generate a name for the ik handle using self.instance
         ikhname = self.module_info["ikcontrols"][1].replace('s_', self.instance)
+        # Create Stretchy IK
+        #createStretchyIk(ikjnt_info, rjnt_info, control, ikHandleName, pvName, instance, twistCompensate, pmas,  pvt, pvMA, pvloc, saxis, settingsControl, *args):
         self.rig_info['ikh']=cmds.ikHandle(n=ikhname, sj=self.rig_info['ikjnts'][0], ee=self.rig_info['ikjnts'][2], sol='ikRPsolver', p=2, w=1 )
 
         ikctrlname = self.module_info["ikcontrols"][0].replace('s_', self.instance)
@@ -108,7 +110,7 @@ class Rig_Arm:
 
         # Connect Ik and Fk to Rig joints
         switchattr = self.rig_info['setcontrol'][1] + '.IK_FK'
-        utils.connectThroughBC(self.rig_info['ikjnts'], self.rig_info['fkjnts'], self.rig_info['rigjnts'], self.instance, switchattr )
+        self.rig_info['bcnodes'] = utils.connectThroughBC(self.rig_info['ikjnts'], self.rig_info['fkjnts'], self.rig_info['rigjnts'], self.instance, switchattr )
   
         # Constrain fk joints to controls.
         [cmds.parentConstraint(self.rig_info['fkcontrols'][i][1], self.rig_info['fkjnts'][i], mo=True) for i in range(len(self.rig_info['fkcontrols']))]
