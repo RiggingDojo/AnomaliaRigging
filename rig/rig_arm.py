@@ -66,13 +66,16 @@ class Rig_Arm:
         self.rig_info['rigjnts']=utils.createJoint(self.module_info['rigjnts'], self.rig_info['positions'], self.instance)      
         cmds.parent(self.rig_info['rigjnts'][0], self.rig_info['localgrp'])
 
-        # Create Ik Rig
-        # Generate a name for the ik handle using self.instance
-        ikhname = self.module_info["ikcontrols"][1].replace('s_', self.instance)
-        # Create Stretchy IK
-        #createStretchyIk(ikjnt_info, rjnt_info, control, ikHandleName, pvName, instance, twistCompensate, pmas,  pvt, pvMA, pvloc, saxis, settingsControl, *args):
-        self.rig_info['ikh']=cmds.ikHandle(n=ikhname, sj=self.rig_info['ikjnts'][0], ee=self.rig_info['ikjnts'][2], sol='ikRPsolver', p=2, w=1 )
+        # Make a control for arm settings
+        setctrlname = self.module_info["settingscontrol"][0].replace('s_', self.instance)
+        self.rig_info['setcontrol']=utils.createControl([[self.rig_info['positions'][2], setctrlname, 'SettingsControl.ma']])[0]
+        cmds.addAttr(self.rig_info['setcontrol'][1], shortName='IK_FK', longName='Ik_Fk', defaultValue=1, min=0, max=1, k=True)
+        cmds.addAttr(self.rig_info['setcontrol'][1], shortName='stretch', longName='Stretchy', defaultValue=0, min=0, max=1, k=True)
+        cmds.addAttr(self.rig_info['setcontrol'][1], shortName='Root_Length', longName='Root_Length', defaultValue=0, min=-5, max=5, k=True)
+        cmds.addAttr(self.rig_info['setcontrol'][1], shortName='End_Length', longName='End_Length', defaultValue=0, min=-5, max=5, k=True)
+        cmds.parent(self.rig_info['setcontrol'][0], self.rig_info['localgrp'])
 
+        # Create Ik Rig
         ikctrlname = self.module_info["ikcontrols"][0].replace('s_', self.instance)
         self.rig_info['ikcontrol']=utils.createControl([[self.rig_info['positions'][2], ikctrlname, 'HandControl.ma']])[0]
         cmds.parent(self.rig_info['ikcontrol'][0], self.rig_info['localgrp'])
@@ -82,17 +85,16 @@ class Rig_Arm:
         self.rig_info['pvcontrol']=utils.createControl([[pvpos, pvctrlname, 'PVControl.ma']])[0]
         cmds.parent(self.rig_info['pvcontrol'][0], self.rig_info['localgrp'])
 
-        # Make a control for arm settings
-        setctrlname = self.module_info["settingscontrol"][0].replace('s_', self.instance)
-        self.rig_info['setcontrol']=utils.createControl([[self.rig_info['positions'][2], setctrlname, 'SettingsControl.ma']])[0]
-        cmds.addAttr(self.rig_info['setcontrol'][1], ln='IK_FK', at="enum", en="fk:ik:", k=True )
-        cmds.parent(self.rig_info['setcontrol'][0], self.rig_info['localgrp'])
+        # Generate a name for the ik handle using self.instance
+        ikhname = self.module_info["ikcontrols"][1].replace('s_', self.instance)
+        # Create Stretchy IK
+        pmas = 1
+        pvMA = self.instance + "PV"
+        self.rig_info['ikinfo']=utils.createStretchyIk(self.rig_info['ikjnts'], self.rig_info['rigjnts'], self.rig_info['ikcontrol'], 
+            ikhname, pvctrlname, self.instance, False, pmas, pvMA, '.tx', self.rig_info['setcontrol'])
 
         # Parent ikh to ctrl
-        cmds.parent(self.rig_info['ikh'][0], self.rig_info['ikcontrol'][1])
-
-        # PV constraint
-        cmds.poleVectorConstraint(self.rig_info['pvcontrol'][1], self.rig_info['ikh'][0])
+        cmds.parent(self.rig_info['ikinfo'][0], self.rig_info['ikcontrol'][1])
     
         # orient constrain arm ik_wrist to ctrl_arm
         cmds.orientConstraint(self.rig_info['ikcontrol'][1], self.rig_info['ikjnts'][2], mo=True)
