@@ -1,6 +1,6 @@
 //Maya ASCII 2014 scene
-//Name: HandControl.ma
-//Last modified: Sun, Jul 17, 2016 02:41:23 PM
+//Name: FootControl.ma
+//Last modified: Sun, Jul 17, 2016 02:42:06 PM
 //Codeset: 1252
 requires maya "2014";
 requires -nodeType "ilrOptionsNode" -nodeType "ilrUIOptionsNode" -nodeType "ilrBakeLayerManager"
@@ -337,4 +337,4 @@ connectAttr "renderLayerManager.rlmi[0]" "defaultRenderLayer.rlid";
 connectAttr ":TurtleDefaultBakeLayer.idx" ":TurtleBakeLayerManager.bli[0]";
 connectAttr ":TurtleRenderOptions.msg" ":TurtleDefaultBakeLayer.rset";
 connectAttr "defaultRenderLayer.msg" ":defaultRenderingList1.r" -na;
-// End of HandControl.ma
+// End of FootControl.ma

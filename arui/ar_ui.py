@@ -25,9 +25,8 @@ class AR_UI:
         self.rigmodlst = []
         rigcontents = os.listdir(os.environ["AR_DATA"]+ 'rig/')
         for mod in rigcontents:
-            if '.pyc' not in mod or 'init' not in mod:
+            if '.pyc' not in mod:
                 self.rigmodlst.append(mod)
-
         # An empty list to store information collected from the ui.
         self.uiinfo = [] 
 
@@ -83,6 +82,10 @@ class AR_UI:
         self.UIElements["spinebutton"] = cmds.button(label="Spine", width=buttonWidth, height=buttonHeight,
                                                     bgc=[0.2, 0.4, 0.2], p=self.UIElements["miscButtonLayout"], 
                                                     c=self.loadSplineTool)
+        # Foot button
+        self.UIElements["footbutton"] = cmds.button(label="foot", width=buttonWidth, height=buttonHeight,
+                                                    bgc=[0.2, 0.4, 0.2], p=self.UIElements["miscButtonLayout"], 
+                                                    c=self.loadFootTool)
 
         """ Show the window"""
         cmds.showWindow(windowName)
@@ -93,8 +96,6 @@ class AR_UI:
         currentValue = cmds.optionMenu(self.UIElements["rigMenu"], query=True, value=True)
         mod = __import__("rig."+currentValue, {}, {}, [currentValue])
         reload(mod)
-        print "The mod"
-        print mod
         
         self.uiinfo[:] = []
         sideval = cmds.optionMenu(self.UIElements["sideMenu"], q=True, v=True) 
@@ -116,3 +117,10 @@ class AR_UI:
         reload(spl)
         wizard = spl.makeGuiWindow()
         return wizard
+
+    def loadFootTool(self, *args):
+        """create a foot rigging window"""
+        from tools.foot_rigger import griff_footRig as gfr
+        reload(gfr)
+        gfr = gfr.GR_FootRig()
+        ui = gfr.ui()

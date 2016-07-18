@@ -1,36 +1,36 @@
 {  
    "fkcontrols":[  
-      "s_shoulder_FK_CTRL",
-      "s_elbow_FK_CTRL",
-      "s_wrist_FK_CTRL"
+      "s_hip_FK_CTRL",
+      "s_knee_FK_CTRL",
+      "s_ankle_FK_CTRL"
    ],
    "ikjnts":[  
-      "s_shoulder_IKJNT",
-      "s_elbow_IKJNT",
-      "s_wrist_IKJNT",
-      "s_wristEnd_IKJNT"
+      "s_hip_IKJNT",
+      "s_knee_IKJNT",
+      "s_ankle_IKJNT",
+      "s_ankleEnd_IKJNT"
    ],
    "fkjnts":[  
-      "s_shoulder_FKJNT",
-      "s_elbow_FKJNT",
-      "s_wrist_FKJNT",
-      "s_wristEnd_FKJNT"
+      "s_hip_FKJNT",
+      "s_knee_FKJNT",
+      "s_ankle_FKJNT",
+      "s_ankleEnd_FKJNT"
    ],
    "rigjnts":[  
-      "s_shoulder_RIGJNT",
-      "s_elbow_RIGJNT",
-      "s_wrist_RIGJNT",
-      "s_wristEnd_RIGJNT"
+      "s_hip_RIGJNT",
+      "s_knee_RIGJNT",
+      "s_ankle_RIGJNT",
+      "s_ankleEnd_RIGJNT"
    ],
    "bindjnts":[  
-      "s_shoulder_JNT",
-      "s_elbow_JNT",
-      "s_wrist_JNT",
-      "s_wristEnd_JNT"
+      "s_hip_JNT",
+      "s_knee_JNT",
+      "s_ankle_JNT",
+      "s_ankleEnd_JNT"
    ],
    "twistjnts":[  
-      "s_bicep_JNT",
-      "s_forearm_JNT",
+      "s_thigh_JNT",
+      "s_calf_JNT"
    ],
    "positions":[  
       [  
@@ -55,8 +55,14 @@
       ]
    ],
    "ikcontrols":[  
-      "s_arm_IK_CTRL",
-      "s_arm_IKH",
-      "s_arm_PV_CTRL"
+      "s_leg_IK_CTRL",
+      "s_leg_IKH",
+      "s_leg_PV_CTRL"
+   ],
+   "settingscontrol":[  
+      "s_leg_SETTINGS_CTRL"
+   ],
+   "rootname":[  
+      "s_LEG"
    ]
 }
