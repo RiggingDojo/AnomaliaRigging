@@ -54,6 +54,9 @@
          6.0
       ]
    ],
+   "orientations":[  
+      "xyz"
+   ],
    "ikcontrols":[  
       "s_arm_IK_CTRL",
       "s_arm_IKH",

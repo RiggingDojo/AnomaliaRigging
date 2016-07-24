@@ -59,22 +59,30 @@ class GR_FootRig:
         if cmds.objExists('lyt_ankle') == True:
             cmds.headsUpMessage('A lyt already exists')
             return
-        al = cmds.spaceLocator(n='lyt_ankle', p=[0.0, 2.0, 0.0])
-        bl = cmds.spaceLocator(n='lyt_ball', p=[0.0, 0.5, 1.0])
-        tl = cmds.spaceLocator(n='lyt_toe', p=[0.0, 0.0, 2.0])
-        hl = cmds.spaceLocator(n='lyt_heel', p=[0.0, 0.0, -1.0])
-        rbl = cmds.spaceLocator(n='lyt_rbank', p=[-0.5, 0.0, 1.0])
-        lbl = cmds.spaceLocator(n='lyt_lbank', p=[0.5, 0.0, 1.0])
+        al = cmds.spaceLocator(n='lyt_ankle')
+        cmds.xform(al, ws=True, t=[0.0, 2.0, 0.0])
+        bl = cmds.spaceLocator(n='lyt_ball')
+        cmds.xform(bl, ws=True, t=[0.0, 0.5, 1.0])
+        tl = cmds.spaceLocator(n='lyt_toe')
+        cmds.xform(tl, ws=True, t=[0.0, 0.0, 2.0])
+        hl = cmds.spaceLocator(n='lyt_heel')
+        cmds.xform(hl, ws=True, t=[0.0, 0.0, -1.0])
+        rbl = cmds.spaceLocator(n='lyt_rbank')
+        cmds.xform(rbl, ws=True, t=[-0.5, 0.0, 1.0])
+        lbl = cmds.spaceLocator(n='lyt_lbank')
+        cmds.xform(lbl, ws=True, t=[0.5, 0.0, 1.0])
 
         cmds.parent(bl, tl, hl, rbl, lbl, al)
 
     def setupFoot(self, *args):
-        self.foot_info['ankle_lyt'] = 'lyt_ankle'
-        self.foot_info['ball_lyt'] = 'lyt_ball'
-        self.foot_info['toe_lyt'] = 'lyt_toe'
-        self.foot_info['heel_lyt'] = 'lyt_heel'
-        self.foot_info['rbank_lyt'] = 'lyt_rbank'
-        self.foot_info['lbank_lyt'] = 'lyt_lbank'
+        #'grp_footPivotL', 'grp_footPivotR', 'grp_heel', 'grp_toe', 'grp_ball', 'grp_flap', 'grp_ankle'
+        self.foot_info['lbank_lyt'] = ['lyt_lbank', cmds.xform('lyt_lbank', q=True, ws=True, t=True)]
+        self.foot_info['rbank_lyt'] = ['lyt_rbank', cmds.xform('lyt_rbank', q=True, ws=True, t=True)]
+        self.foot_info['heel_lyt'] = ['lyt_heel', cmds.xform('lyt_heel', q=True, ws=True, t=True)]
+        self.foot_info['toe_lyt'] = ['lyt_toe', cmds.xform('lyt_toe', q=True, ws=True, t=True)]
+        self.foot_info['ball_lyt'] = ['lyt_ball', cmds.xform('lyt_ball', q=True, ws=True, t=True)]
+        self.foot_info['ankle_lyt'] = ['lyt_ankle', cmds.xform('lyt_ankle', q=True, ws=True, t=True)]
+        
 
         footControl = cmds.button(self.UIElements["selctrl"], q=True, l=True)
         ikHandleName = cmds.button(self.UIElements["selik"], q=True, l=True)
@@ -91,18 +99,14 @@ class GR_FootRig:
                 try:
                     cmds.addAttr(shortName=attr, longName=attr, defaultValue=0, k=True)
                 except: pass
-
-        ikJntPos = []
         
-        for key, value in self.foot_info.iteritems():
-            ikJntPos.append(cmds.xform(value, q=True, ws=True, t=True))
-        print ikJntPos
-
-        ikjnts = [side + 'ankle_IKJ', side + 'ball_IKJ', side + 'toe_IKJ', side + 'heel_IKJ']
+        ikjnts = [side + 'heel_IKJ', side + 'toe_IKJ', side + 'ball_IKJ', side + 'ankle_IKJ' ]
         cmds.select(d=True)
 
-        for j in range(len(ikjnts)):
-            cmds.joint(n=ikjnts[j], p=ikJntPos[j])
+        cmds.joint(n=ikjnts[0], p=self.foot_info['heel_lyt'][1])
+        cmds.joint(n=ikjnts[1], p=self.foot_info['toe_lyt'][1])
+        cmds.joint(n=ikjnts[2], p=self.foot_info['ball_lyt'][1])
+        cmds.joint(n=ikjnts[3], p=self.foot_info['ankle_lyt'][1])
 
         # NOTE:  Add all created nodes to a list.
         footNodes = []
@@ -147,9 +151,17 @@ class GR_FootRig:
         footNodes.append(ikBall[0])
         ikToe = cmds.ikHandle(n="ikh_toe_" + suffix, sj=ikjnts[1], ee=ikjnts[2], s="sticky", sol=ikSol)
         footNodes.append([ikToe[0], ikBall[0]])
+        
         # Create the foot groups
-        footGrps = ('grp_ankle', 'grp_ball', 'grp_toe', 'grp_flap', 'grp_heel', 'grp_footPivotR', 'grp_footPivotL')
+        footGrps = []
+        for key in self.foot_info:
+            print key
+            grp = cmds.group(n=self.foot_info[key][0].replace('lyt', 'grp'))
+            cmds.xform(grp, t=self.foot_info[key][1])
+        footGrps.append(grp)
+        
 
+        """
         for grp in footGrps:
             grpName = (grp + '_' + suffix)
             cmds.select(d=True)
@@ -162,13 +174,15 @@ class GR_FootRig:
             if grp == footGrps[2] + '_' + suffix:
                 cmds.xform(grp, t=ikJntPos[2])
             if grp == footGrps[3] + '_' + suffix:
-                cmds.xform(grp, t=ikJntPos[2])
-            if grp == footGrps[4] + '_' + suffix:
                 cmds.xform(grp, t=ikJntPos[3])
+            if grp == footGrps[4] + '_' + suffix:
+                cmds.xform(grp, t=ikJntPos[4])
             if grp == footGrps[5] + '_' + suffix:
                 cmds.xform(grp, t=ikJntPos[4])
             if grp == footGrps[6] + '_' + suffix:
                 cmds.xform(grp, t=ikJntPos[5])
+        """
+
 
         for i in range(len(footGrps)):
             if cmds.objExists(footGrps[i]+ '_' + suffix) == True:

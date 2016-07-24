@@ -13,18 +13,43 @@ def readJson(fileName):
         data = (open(infile.name, 'r').read())
     return data
 
+def duplicateJoints(name, source, instance):
+    dupjnts = []
+    for i in range(len(name)):
+        print name[i]
+        newjnt_name = source[i].replace('s_', instance)
+
+        dj = cmds.duplicate(name[i], n=newjnt_name, ic=False, po=True)
+
+        if i == 0:
+            cmds.parent(dj[0], w=True)
+        else:
+            cmds.parent(dj[0], newjnt_name )
+        dupjnts.append(dj[0])
+
+    return dupjnts
 
 def createJoint(name, position, instance):
     # Use a list comprehension to build joints.
-    jnt_list = [cmds.joint(n=name[i].replace('s_', instance), p=position[i]) for i in range(len(name))]
-    cmds.select(d=True)
+    jnt_list = [cmds.joint(n=name[i].replace('s_', instance)) for i in range(len(name))]
+    for j in range(len(jnt_list)):
+        print position[j]
+        cmds.xform(jnt_list[j], ws=True, t=position[j])
+
+    cmds.select(d=True)    
     return(jnt_list)
+
+def orientJoints(jnt_list, orient):
+    for j in range(len(jnt_list)):
+        cmds.setAttr('%s.jointOrientX' % jnt_list[j], orient[j][0][0])
+        cmds.setAttr('%s.jointOrientY' % jnt_list[j], orient[j][0][1])
+        cmds.setAttr('%s.jointOrientZ' % jnt_list[j], orient[j][0][2])
+        cmds.makeIdentity(jnt_list[j], apply=True, rotate=True)  
 
 
 def createControl(ctrlinfo):
     control_info = []
     for info in ctrlinfo:
-        print info
         # Create ik control
         # Get ws position of the joint
         pos = info[0]
@@ -41,27 +66,34 @@ def createControl(ctrlinfo):
         # Move the group to the joint
         cmds.xform(ctrlgrp, t=pos, ws=True)
         control_info.append([ctrlgrp, ctrl])
+
+        # Lock Attrs
+        for attr in info[3]:
+            cmds.setAttr(ctrl+attr, channelBox=False, lock=True)
     return(control_info)
 
 
 def calculatePVPosition(jnts):
-    from maya import cmds , OpenMaya
-    start = cmds.xform(jnts[0] ,q=True ,ws=True, t=True)
-    mid = cmds.xform(jnts[1] ,q=True ,ws=True, t=True)
-    end = cmds.xform(jnts[2] ,q=True ,ws=True, t=True)
-    startV = OpenMaya.MVector(start[0] ,start[1],start[2])
-    midV = OpenMaya.MVector(mid[0] ,mid[1],mid[2])
-    endV = OpenMaya.MVector(end[0] ,end[1],end[2])
-    startEnd = endV - startV
-    startMid = midV - startV
-    dotP = startMid * startEnd
-    proj = float(dotP) / float(startEnd.length())
-    startEndN = startEnd.normal()
-    projV = startEndN * proj
-    arrowV = startMid - projV
-    arrowV*= 0.5
-    finalV = arrowV + midV
-    return ([finalV.x , finalV.y ,finalV.z])
+    from maya import cmds, OpenMaya
+    if len(jnts) != 3:
+        return
+    else:
+        start = cmds.xform(jnts[0], q=1, ws=1, t=1 )
+        mid = cmds.xform(jnts[1], q=1, ws=1, t=1 )
+        end = cmds.xform(jnts[2], q=1, ws=1, t=1 )
+        startV = OpenMaya.MVector(start[0], start[1], start[2])
+        midV = OpenMaya.MVector(mid[0], mid[1], mid[2])
+        endV = OpenMaya.MVector(end[0], end[1], end[2])
+        startEnd = endV - startV
+        startMid = midV - startV
+        dotP = startMid * startEnd
+        proj = float(dotP) / float(startEnd.length())
+        startEndN = startEnd.normal()
+        projV = startEndN * proj
+        arrowV = startMid - projV
+        arrowV *= 0.5
+        finalV = arrowV + midV
+        return [finalV.x, finalV.y, finalV.z]
 
 def connectThroughBC(parentsA, parentsB, children, instance, switchattr ):
     constraints = []
@@ -320,6 +352,9 @@ def createStretchyIk(ikjnt_info, rjnt_info, control, ikHandleName, pvName, insta
         try:
             cmds.setAttr(item + '.visibility', 0)
         except: pass
+    cmds.setAttr(ikh[0] + '.visibility', 0)
+    cmds.setAttr(lctrR[0]+ '.visibility', 0)
+    cmds.setAttr(lctrE[0]+ '.visibility', 0)
 
     return(ikh[0], lctrR[0], shadingnodelist, lctrE[0], ikSol)
 
