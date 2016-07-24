@@ -75,21 +75,21 @@ class GR_FootRig:
         cmds.parent(bl, tl, hl, rbl, lbl, al)
 
     def setupFoot(self, *args):
-        #'grp_footPivotL', 'grp_footPivotR', 'grp_heel', 'grp_toe', 'grp_ball', 'grp_flap', 'grp_ankle'
-        self.foot_info['lbank_lyt'] = ['lyt_lbank', cmds.xform('lyt_lbank', q=True, ws=True, t=True)]
-        self.foot_info['rbank_lyt'] = ['lyt_rbank', cmds.xform('lyt_rbank', q=True, ws=True, t=True)]
-        self.foot_info['heel_lyt'] = ['lyt_heel', cmds.xform('lyt_heel', q=True, ws=True, t=True)]
-        self.foot_info['toe_lyt'] = ['lyt_toe', cmds.xform('lyt_toe', q=True, ws=True, t=True)]
-        self.foot_info['ball_lyt'] = ['lyt_ball', cmds.xform('lyt_ball', q=True, ws=True, t=True)]
-        self.foot_info['ankle_lyt'] = ['lyt_ankle', cmds.xform('lyt_ankle', q=True, ws=True, t=True)]
-        
-
         footControl = cmds.button(self.UIElements["selctrl"], q=True, l=True)
         ikHandleName = cmds.button(self.UIElements["selik"], q=True, l=True)
         jntornt = [0.0, 0.0, 0.0]
-        orient = ['.ry', '.rx', '.rz']
+        orient = ['.rx', '.ry', '.rz']
         side = cmds.optionMenu(self.UIElements["sideMenu"], q=True, v=True) 
-        suffix = side + '_foot'
+        suffix = side + '_foot_'
+
+        #'grp_footPivotL', 'grp_footPivotR', 'grp_heel', 'grp_toe', 'grp_ball', 'grp_flap', 'grp_ankle'
+        self.foot_info['lbank_lyt'] = [suffix + 'lyt_lbank', cmds.xform('lyt_lbank', q=True, ws=True, t=True)]
+        self.foot_info['rbank_lyt'] = [suffix + 'lyt_rbank', cmds.xform('lyt_rbank', q=True, ws=True, t=True)]
+        self.foot_info['heel_lyt'] = [suffix + 'lyt_heel', cmds.xform('lyt_heel', q=True, ws=True, t=True)]
+        self.foot_info['toe_lyt'] = [suffix + 'lyt_toe', cmds.xform('lyt_toe', q=True, ws=True, t=True)]
+        self.foot_info['ball_lyt'] = [suffix + 'lyt_ball', cmds.xform('lyt_ball', q=True, ws=True, t=True)]
+        self.foot_info['ankle_lyt'] = [suffix + 'lyt_ankle', cmds.xform('lyt_ankle', q=True, ws=True, t=True)]
+        self.foot_info['flap_lyt'] = [suffix + 'lyt_flap', cmds.xform('lyt_toe', q=True, ws=True, t=True)]
 
         # Add attributes to the foot control
         ctrlAttrs = ('____', 'foot_roll', 'roll_break', 'foot_twist', 'foot_bank', 'toe_flap', 'toe_roll', 'toe_pivot')
@@ -100,13 +100,13 @@ class GR_FootRig:
                     cmds.addAttr(shortName=attr, longName=attr, defaultValue=0, k=True)
                 except: pass
         
-        ikjnts = [side + 'heel_IKJ', side + 'toe_IKJ', side + 'ball_IKJ', side + 'ankle_IKJ' ]
+        ikjnts = [side + 'foot_IKJ', side + 'ball_IKJ',  side + 'toe_IKJ', side + 'heel_IKJ']
         cmds.select(d=True)
 
-        cmds.joint(n=ikjnts[0], p=self.foot_info['heel_lyt'][1])
-        cmds.joint(n=ikjnts[1], p=self.foot_info['toe_lyt'][1])
-        cmds.joint(n=ikjnts[2], p=self.foot_info['ball_lyt'][1])
-        cmds.joint(n=ikjnts[3], p=self.foot_info['ankle_lyt'][1])
+        cmds.joint(n=ikjnts[0], p=self.foot_info['ankle_lyt'][1])
+        cmds.joint(n=ikjnts[1], p=self.foot_info['ball_lyt'][1])
+        cmds.joint(n=ikjnts[2], p=self.foot_info['toe_lyt'][1])
+        cmds.joint(n=ikjnts[3], p=self.foot_info['heel_lyt'][1])     
 
         # NOTE:  Add all created nodes to a list.
         footNodes = []
@@ -145,53 +145,29 @@ class GR_FootRig:
         cmds.setAttr(pmaBRollbreak + '.input1D[1]', 45)
 
         # Make Ik Handles
-        ikSolvername = ikHandleName.replace('ikh', 'ikSol_foot_' + suffix)
+        ikSolvername = ikHandleName.replace('ikh', suffix + 'ikSol_foot')
         ikSol = cmds.ikSolver( st='ikSCsolver', ep=0.0, n=ikSolvername)
-        ikBall = cmds.ikHandle(n="ikh_ball_" + suffix, sj=ikjnts[0], ee=ikjnts[1], s="sticky", sol=ikSol)
+        ikBall = cmds.ikHandle(n=suffix + "ikh_ball" , sj=ikjnts[0], ee=ikjnts[1], s="sticky", sol=ikSol)
         footNodes.append(ikBall[0])
-        ikToe = cmds.ikHandle(n="ikh_toe_" + suffix, sj=ikjnts[1], ee=ikjnts[2], s="sticky", sol=ikSol)
+        ikToe = cmds.ikHandle(n=suffix + "ikh_toe", sj=ikjnts[1], ee=ikjnts[2], s="sticky", sol=ikSol)
         footNodes.append([ikToe[0], ikBall[0]])
         
         # Create the foot groups
         footGrps = []
         for key in self.foot_info:
-            print key
-            grp = cmds.group(n=self.foot_info[key][0].replace('lyt', 'grp'))
-            cmds.xform(grp, t=self.foot_info[key][1])
-        footGrps.append(grp)
-        
-
-        """
-        for grp in footGrps:
-            grpName = (grp + '_' + suffix)
             cmds.select(d=True)
-            grp = cmds.joint(n=grpName)
-            # Position the groups
-            if grp == footGrps[0] + '_' + suffix:
-                cmds.xform(grp, t=ikJntPos[0])
-            if grp == footGrps[1] + '_' + suffix:
-                cmds.xform(grp, t=ikJntPos[1])
-            if grp == footGrps[2] + '_' + suffix:
-                cmds.xform(grp, t=ikJntPos[2])
-            if grp == footGrps[3] + '_' + suffix:
-                cmds.xform(grp, t=ikJntPos[3])
-            if grp == footGrps[4] + '_' + suffix:
-                cmds.xform(grp, t=ikJntPos[4])
-            if grp == footGrps[5] + '_' + suffix:
-                cmds.xform(grp, t=ikJntPos[4])
-            if grp == footGrps[6] + '_' + suffix:
-                cmds.xform(grp, t=ikJntPos[5])
-        """
-
+            grp = cmds.joint(n=self.foot_info[key][0].replace('lyt', 'grp'))
+            cmds.xform(grp, t=self.foot_info[key][1])
+            footGrps.append(grp)     
 
         for i in range(len(footGrps)):
             if cmds.objExists(footGrps[i]+ '_' + suffix) == True:
                 pass
             else:
-                cmds.joint(footGrps[i]+ '_' + suffix, e=True, zso=True, oj='xyz' )
-                cmds.setAttr(footGrps[i]+ '_' + suffix+'.jointOrientX', jntornt[0])
-                cmds.setAttr(footGrps[i]+ '_' + suffix+'.jointOrientY', jntornt[1])
-                cmds.setAttr(footGrps[i]+ '_' + suffix+'.jointOrientZ', jntornt[2])
+                cmds.joint(footGrps[i], e=True, zso=True, oj='xyz' )
+                cmds.setAttr(footGrps[i]+'.jointOrientX', jntornt[0])
+                cmds.setAttr(footGrps[i]+'.jointOrientY', jntornt[1])
+                cmds.setAttr(footGrps[i]+'.jointOrientZ', jntornt[2])
 
         for i in range(len(footGrps)):
             try:
@@ -199,17 +175,17 @@ class GR_FootRig:
             except: pass
             footNodes.append(footGrps[i] + '_' + suffix)
             cmds.select(d=True)
-            if i == 0:
-                cmds.parent(footGrps[i]+ '_' + suffix, footControl)
-            else:
-                cmds.parent(footGrps[i]+ '_' + suffix,footGrps[i-1]+ '_' + suffix)
-            if i == 5:
-                cmds.parent(footGrps[i]+ '_' + suffix, footGrps[3]+ '_' + suffix)
-            if i == 6:
-                cmds.parent(footGrps[i]+ '_' + suffix, footGrps[4]+ '_' + suffix)
-        cmds.parent(ikBall[0], footGrps[4] + '_' + suffix)
-        cmds.parent(ikToe[0], footGrps[5] + '_' + suffix)
-        cmds.parent(ikHandleName, footGrps[4] + '_' + suffix)
+        #[u'0 L__foot_grp_rbank', u'1 L__foot_grp_toe', u'2 L__foot_grp_flap', u'3 L__foot_grp_heel', 
+        # u'4 L__foot_grp_ball', u'5 L__foot_grp_ankle', u'6 L__foot_grp_lbank']
+
+        cmds.parent(footGrps[0], footGrps[6])
+        cmds.parent(footGrps[3], footGrps[0])
+        cmds.parent(footGrps[1], footGrps[3])
+        cmds.parent(footGrps[4], footGrps[1])
+        cmds.parent(footGrps[2], footGrps[1])
+        cmds.parent(footGrps[5], footGrps[4])
+        cmds.parent(ikBall, footGrps[4])
+        cmds.parent(ikToe, footGrps[2])
         cmds.select(d=True)
 
         # Setup toe ---------------------------------------------------
@@ -222,12 +198,12 @@ class GR_FootRig:
         cmds.connectAttr(pmaBRollbreak+ '.output1D', conTRoll + '.colorIfFalseR')
         cmds.connectAttr(pmaBRollbreak+ '.output1D', pmaTRoll + '.input1D[1]')
         cmds.connectAttr(conTRoll + '.outColorR', pmaTRoll + '.input1D[0]')
-        cmds.connectAttr(pmaTRoll + '.output1D', 'grp_toe_' + suffix + orient[1])
+        cmds.connectAttr(pmaTRoll + '.output1D', suffix + 'grp_toe' + orient[0])
 
         # Setup the Heel -----------------------------------------------------
         cmds.connectAttr(footRoll, conHRoll + '.firstTerm')
         cmds.connectAttr(footRoll, conHRoll + '.colorIfTrueR')
-        cmds.connectAttr(conHRoll + '.outColorR', 'grp_heel_' + suffix + orient[1])
+        cmds.connectAttr(conHRoll + '.outColorR', suffix + 'grp_heel' + orient[0])
 
         # Setup Ball ----------------------------------------------------------
         cmds.connectAttr(footRoll, conBRoll+'.firstTerm')
@@ -236,25 +212,25 @@ class GR_FootRig:
         cmds.connectAttr(pmaBRollbreak + '.output1D', conNBRoll+'.colorIfTrueR')
 
         cmds.connectAttr(conNBRoll+'.outColorR', pmaBRoll+'.input1D[0]')
-        cmds.connectAttr('grp_toe_' + suffix + '.rx', pmaBRoll+'.input1D[1]')
-        cmds.connectAttr(pmaBRoll+'.output1D', 'grp_ball_' + suffix + orient[1])
+        cmds.connectAttr(suffix + 'grp_toe' + '.rx', pmaBRoll+'.input1D[1]')
+        cmds.connectAttr(pmaBRoll+'.output1D', suffix + 'grp_ball' + orient[0])
         cmds.connectAttr(conBRoll+'.outColorR', conNBRoll+'.firstTerm')
         cmds.connectAttr(conBRoll+'.outColorR', conNBRoll+'.colorIfFalseR')
 
         # Toe Flap
-        cmds.connectAttr(footControl + '.toe_flap', footGrps[5]+ '_' + suffix + '.rx')
-        cmds.connectAttr(footControl + '.toe_pivot', footGrps[5]+ '_' + suffix + '.rz')
-        cmds.connectAttr(footControl + '.toe_roll', footGrps[5]+ '_' + suffix + '.ry')
+        cmds.connectAttr(footControl + '.toe_flap', suffix + 'grp_flap' + '.rx')
+        cmds.connectAttr(footControl + '.toe_pivot', suffix + 'grp_flap' + '.ry')
+        cmds.connectAttr(footControl + '.toe_roll', suffix + 'grp_flap' + '.rz')
 
         # eTwist
-        cmds.connectAttr(footControl +'.foot_twist', footGrps[3]+ '_' + suffix + orient[2])
+        cmds.connectAttr(footControl +'.foot_twist', suffix + 'grp_ball' + orient[1])
 
         # Bank
         cmds.connectAttr(footControl +'.foot_bank', '%s.firstTerm' % conLBank)
         cmds.connectAttr(footControl +'.foot_bank', '%s.colorIfTrueR' % conLBank)
-        cmds.connectAttr('%s.outColorR' % conLBank, footGrps[0]+ '_' + suffix + orient[0])
+        cmds.connectAttr('%s.outColorR' % conLBank, suffix + 'grp_rbank' + orient[2])
         cmds.connectAttr(footControl +'.foot_bank', '%s.firstTerm' % conRBank)
         cmds.connectAttr(footControl +'.foot_bank', '%s.colorIfTrueR' % conRBank)
-        cmds.connectAttr('%s.outColorR' % conRBank, footGrps[1]+ '_' + suffix + orient[0])
+        cmds.connectAttr('%s.outColorR' % conRBank, suffix + 'grp_lbank' + orient[2])
 
         return footNodes
