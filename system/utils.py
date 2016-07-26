@@ -63,9 +63,13 @@ def createControl(ctrlinfo):
         if cmds.objExists('grp_control') == True:
             cmds.rename('grp_control', ctrlgrp )
             cmds.rename('control', ctrl)
+        
+        mgrp = cmds.group(n=info[1] + '_MOCAP', em=True)
+        zgrp = cmds.group(n=info[1] + '_ZERO')
+        cmds.parent(ctrlgrp, mgrp)
         # Move the group to the joint
-        cmds.xform(ctrlgrp, t=pos, ws=True)
-        control_info.append([ctrlgrp, ctrl])
+        cmds.xform(zgrp, t=pos, ws=True)
+        control_info.append([ctrlgrp, ctrl, zgrp, mgrp])
 
         # Lock Attrs
         for attr in info[3]:
@@ -99,11 +103,11 @@ def connectThroughBC(parentsA, parentsB, children, instance, switchattr ):
     constraints = []
     for j in range(len(children)):
         switchPrefix = children[j].partition('_')[2]
-        bcNodeT = cmds.shadingNode("blendColors", asUtility=True, n='bcNodeT_switch_' + switchPrefix)
+        bcNodeT = cmds.shadingNode("blendColors", asUtility=True, n=instance + 'bcNodeT_switch_' + switchPrefix)
         cmds.connectAttr(switchattr, bcNodeT  + '.blender')
-        bcNodeR = cmds.shadingNode("blendColors", asUtility=True, n='bcNodeR_switch_' + switchPrefix)
+        bcNodeR = cmds.shadingNode("blendColors", asUtility=True, n=instance + 'bcNodeR_switch_' + switchPrefix)
         cmds.connectAttr(switchattr, bcNodeR  + '.blender')
-        bcNodeS = cmds.shadingNode("blendColors", asUtility=True, n='bcNodeS_switch_' + switchPrefix)
+        bcNodeS = cmds.shadingNode("blendColors", asUtility=True, n=instance + 'bcNodeS_switch_' + switchPrefix)
         cmds.connectAttr(switchattr, bcNodeS  + '.blender')
         constraints.append([bcNodeT, bcNodeR, bcNodeS])
         # Input Parents

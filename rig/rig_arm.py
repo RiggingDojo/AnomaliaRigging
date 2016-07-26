@@ -48,6 +48,8 @@ class Rig_Arm:
         self.install()
 
     def install(self):
+        if cmds.objExists(self.module_info['rootname'][0].replace('s_', self.instance)+'_M_GRP') == True:
+            return 
         # Create a master group
         self.rig_info['mastergrp'] = cmds.group(n=self.module_info['rootname'][0].replace('s_', self.instance)+'_M_GRP', em=True)
         cmds.xform(self.rig_info['mastergrp'], ws=True, t=self.rig_info['positions'][0])
@@ -81,7 +83,7 @@ class Rig_Arm:
         cmds.addAttr(self.rig_info['setcontrol'][1], shortName='stretch', longName='Stretchy', defaultValue=0, min=0, max=1, k=True)
         cmds.addAttr(self.rig_info['setcontrol'][1], shortName='Root_Length', longName='Root_Length', defaultValue=0, min=-5, max=5, k=True)
         cmds.addAttr(self.rig_info['setcontrol'][1], shortName='End_Length', longName='End_Length', defaultValue=0, min=-5, max=5, k=True)
-        cmds.parent(self.rig_info['setcontrol'][0], self.rig_info['localgrp'])
+        cmds.parent(self.rig_info['setcontrol'][2], self.rig_info['localgrp'])
 
         # Connect Ik and Fk to Rig joints
         switchattr = self.rig_info['setcontrol'][1] + '.IK_FK'
@@ -91,7 +93,7 @@ class Rig_Arm:
         lockattrs = (['.sx', '.sy', '.sz'])
         ikctrlname = self.module_info["ikcontrols"][0].replace('s_', self.instance)
         self.rig_info['ikcontrol']=utils.createControl([[self.rig_info['positions'][2], ikctrlname, 'HandControl.ma', lockattrs]])[0]
-        cmds.parent(self.rig_info['ikcontrol'][0], self.rig_info['localgrp'])
+        cmds.parent(self.rig_info['ikcontrol'][2], self.rig_info['localgrp'])
         
         lockattrs = (['.rx', '.ry', '.rz', '.sx', '.sy', '.sz'])
         pvpos = utils.calculatePVPosition([self.rig_info['ikjnts'][0], self.rig_info['ikjnts'][1], self.rig_info['ikjnts'][2]])
@@ -101,7 +103,7 @@ class Rig_Arm:
         cmds.delete(tmpcon)
         cmds.select(self.rig_info['pvcontrol'][0])
         #cmds.move(-5, z=True, r=True)
-        cmds.parent(self.rig_info['pvcontrol'][0], self.rig_info['localgrp'])
+        cmds.parent(self.rig_info['pvcontrol'][2], self.rig_info['localgrp'])
 
         # Generate a name for the ik handle using self.instance
         ikhname = self.module_info["ikcontrols"][1].replace('s_', self.instance)
@@ -134,9 +136,9 @@ class Rig_Arm:
             tc =  cmds.parentConstraint(self.rig_info['fkjnts'][i], self.rig_info['fkcontrols'][i][0], mo=False)
             cmds.delete(tc)
         # Parent fk controls      
-        cmds.parent(self.rig_info['fkcontrols'][2][0], self.rig_info['fkcontrols'][1][1])
-        cmds.parent(self.rig_info['fkcontrols'][1][0], self.rig_info['fkcontrols'][0][1])
-        cmds.parent(self.rig_info['fkcontrols'][0][0], self.rig_info['localgrp'])
+        cmds.parent(self.rig_info['fkcontrols'][2][2], self.rig_info['fkcontrols'][1][1])
+        cmds.parent(self.rig_info['fkcontrols'][1][2], self.rig_info['fkcontrols'][0][1])
+        cmds.parent(self.rig_info['fkcontrols'][0][2], self.rig_info['localgrp'])
       
         # Constrain fk joints to controls.
         [cmds.parentConstraint(self.rig_info['fkcontrols'][i][1], self.rig_info['fkjnts'][i], mo=True) for i in range(len(self.rig_info['fkcontrols']))]
