@@ -1,0 +1,689 @@
+{
+    "brow": {
+        "chvals": [
+            [
+                "None", 
+                ".rx", 
+                "None"
+            ], 
+            [
+                "None", 
+                ".rx", 
+                "None"
+            ], 
+            [
+                "rotate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_brow"
+        ], 
+        "minor": [
+            "lyt_ctrl_L_brow1", 
+            "lyt_ctrl_L_brow2"
+        ], 
+        "subcon": [
+            "None"
+        ]
+    }, 
+    "eye": {
+        "chvals": [
+            [
+                ".rz", 
+                ".rx", 
+                "None"
+            ], 
+            [
+                ".ty",
+                ".tz",
+                "None"
+            ], 
+            [
+                "rotate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_eye"
+        ], 
+        "minor": [
+            "lyt_ctrl_L_lid1_up", 
+            "lyt_ctrl_L_lid2_up", 
+            "lyt_ctrl_L_lid3_up", 
+            "lyt_ctrl_L_lid1_low", 
+            "lyt_ctrl_L_lid2_low", 
+            "lyt_ctrl_L_lid3_low"
+        ], 
+        "subcon": [
+            "None"
+        ]
+    }, 
+    "mouthCornerRot": {
+        "chvals": [
+            [
+                "None", 
+                ".rx", 
+                "None"
+            ], 
+            [
+                "None", 
+                ".rx", 
+                "None"
+            ], 
+            [
+                "rotate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_mouthCorner"
+        ], 
+        "minor": [
+            "lyt_ctrl_L_mouthcorner_up", 
+            "lyt_ctrl_L_mouthcorner_low"
+        ], 
+        "subcon": [
+            "None"
+        ]
+    }, 
+    "mouthLowmain": {
+        "chvals": [
+            [
+                ".ry",
+                ".rx", 
+                ".rz"
+            ], 
+            [
+                ".ry",
+                ".rx", 
+                ".rz"
+            ], 
+            [
+                "rotate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_C_mouthDown"
+        ], 
+        "minor": [
+            "lyt_ctrl_C_mouth_low"
+        ], 
+        "subcon": [
+            "None"
+        ]
+    },
+        "mouthLowmainTrans": {
+        "chvals": [
+            [
+                "None",
+                ".rx",
+                "None"
+            ],
+            [
+                "None",
+                "uv",
+                "None"
+            ],
+            [
+                "translate"
+            ]
+        ],
+        "major": [
+            "ctrl_major_C_mouthDown"
+        ],
+        "minor": [
+            "lyt_ctrl_L_mouth_low"
+        ],
+        "subcon": [
+            "None"
+        ]
+    },
+    "mouthUpmain": {
+        "chvals": [
+            [
+                ".ry",
+                ".rx", 
+                ".rz"
+            ], 
+            [
+                ".ry",
+                ".rx", 
+                ".rz"
+            ], 
+            [
+                "rotate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_C_mouthUp"
+        ], 
+        "minor": [
+            "lyt_ctrl_C_mouth_up"
+        ], 
+        "subcon": [
+            "None"
+        ]
+    },
+        "mouthUpmainTrans": {
+        "chvals": [
+            [
+                "None",
+                ".rx",
+                "None"
+            ],
+            [
+                "None",
+                "uv",
+                "None"
+            ],
+            [
+                "translate"
+            ]
+        ],
+        "major": [
+            "ctrl_major_C_mouthUp"
+        ],
+        "minor": [
+            "lyt_ctrl_L_mouth_up"
+        ],
+        "subcon": [
+            "None"
+        ]
+    },
+    "surf_C_brow": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_C_brow"
+        ], 
+        "minor": [
+            "lyt_ctrl_C_brow", 
+            "lyt_ctrl_L_brow1",
+            "lyt_ctrl_L_brow2"
+        ], 
+        "subcon": [
+            "lyt_ctrl_C_brow"
+        ]
+    },
+    "brow_c_rotate": {
+        "chvals": [
+            [
+                ".rx",
+                "None",
+                "None"
+            ],
+            [
+                ".rx",
+                "None",
+                "None"
+            ],
+            [
+                "rotate"
+            ]
+        ],
+        "major": [
+            "ctrl_major_C_brow"
+        ],
+        "minor": [
+            "lyt_ctrl_C_brow",
+            "lyt_ctrl_L_brow1"
+        ],
+        "subcon": [
+            "None"
+        ]
+    },
+    "surf_C_mouthLow": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_C_mouthDown"
+        ], 
+        "minor": [
+            "lyt_ctrl_C_mouth_low", 
+            "lyt_ctrl_L_mouth_low", 
+            "lyt_ctrl_L_chin", 
+            "lyt_ctrl_L_mouthcorner_low"
+        ], 
+        "subcon": [
+            "lyt_ctrl_C_mouth_low"
+        ]
+    }, 
+    "surf_C_mouthUp": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_C_mouthUp"
+        ], 
+        "minor": [
+            "lyt_ctrl_C_mouth_up", 
+            "lyt_ctrl_L_mouth_up", 
+            "lyt_ctrl_L_mouthcorner_up"
+        ], 
+        "subcon": [
+            "lyt_ctrl_C_mouth_up"
+        ]
+    }, 
+    "surf_L_brow": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_brow"
+        ], 
+        "minor": [
+            "lyt_ctrl_L_brow1", 
+            "lyt_ctrl_L_brow2", 
+            "lyt_ctrl_L_brow3"
+        ], 
+        "subcon": [
+            "lyt_ctrl_L_brow1", 
+            "lyt_ctrl_L_brow2", 
+            "lyt_ctrl_L_brow3"
+        ]
+    }, 
+    "surf_L_cheek": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_cheek"
+        ], 
+        "minor": [
+            "lyt_ctrl_L_cheek", 
+            "lyt_ctrl_L_zygo1", 
+            "lyt_ctrl_L_zygo2"
+        ], 
+        "subcon": [
+            "lyt_ctrl_L_cheek"
+        ]
+    }, 
+    "surf_L_chin": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "None"
+        ], 
+        "minor": [
+            "lyt_ctrl_L_chin"
+        ], 
+        "subcon": [
+            "lyt_ctrl_L_chin"
+        ]
+    }, 
+    "surf_L_lidCenter": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_lidIn", 
+            "ctrl_major_L_lidOut"
+        ], 
+        "minor": [
+            [
+                "lyt_ctrl_L_lidcrnr_in"
+            ], 
+            [
+                "lyt_ctrl_L_lidcrnr_out"
+            ]
+        ], 
+        "subcon": [
+            "lyt_ctrl_L_lidcrnr_in", 
+            "lyt_ctrl_L_lidcrnr_out"
+        ]
+    }, 
+    "surf_L_lidLow": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_lidLow"
+        ], 
+        "minor": [
+            "lyt_ctrl_L_lid1_low", 
+            "lyt_ctrl_L_lid2_low", 
+            "lyt_ctrl_L_lid3_low"
+        ], 
+        "subcon": [
+            "lyt_ctrl_L_lid1_low", 
+            "lyt_ctrl_L_lid2_low", 
+            "lyt_ctrl_L_lid3_low"
+        ]
+    }, 
+    "surf_L_lidUp": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_lidUp"
+        ], 
+        "minor": [
+            "lyt_ctrl_L_lid1_up", 
+            "lyt_ctrl_L_lid2_up", 
+            "lyt_ctrl_L_lid3_up"
+        ], 
+        "subcon": [
+            "lyt_ctrl_L_lid1_up", 
+            "lyt_ctrl_L_lid2_up", 
+            "lyt_ctrl_L_lid3_up"
+        ]
+    },
+    "Rot_L_lidUp": {
+        "chvals": [
+            [
+                "None",
+                ".rx",
+                "None"
+            ],
+            [
+                "None",
+                "uv",
+                "None"
+            ],
+            [
+                "translate"
+            ]
+        ],
+        "major": [
+            "ctrl_major_L_lidUp"
+        ],
+        "minor": [
+            "lyt_ctrl_L_lid1_up",
+            "lyt_ctrl_L_lid2_up",
+            "lyt_ctrl_L_lid3_up"
+        ],
+        "subcon": [
+            "None"
+        ]
+    },
+    "Rot_L_lidLow": {
+        "chvals": [
+            [
+                "None",
+                ".rx",
+                "None"
+            ],
+            [
+                "None",
+                "uv",
+                "None"
+            ],
+            [
+                "translate"
+            ]
+        ],
+        "major": [
+            "ctrl_major_L_lidLow"
+        ],
+        "minor": [
+            "lyt_ctrl_L_lid1_low",
+            "lyt_ctrl_L_lid2_low",
+            "lyt_ctrl_L_lid3_low"
+        ],
+        "subcon": [
+            "None"
+        ]
+    },
+    "surf_L_mcorner": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_mouthCorner"
+        ], 
+        "minor": [
+            "lyt_ctrl_L_mouth_up", 
+            "lyt_ctrl_L_mouth_low", 
+            "lyt_ctrl_L_mouthcorner_up", 
+            "lyt_ctrl_L_mouthcorner_low", 
+            "lyt_ctrl_L_mouthcorner_out",
+            "lyt_ctrl_L_chin",
+            "lyt_ctrl_L_cheek",
+            "lyt_ctrl_L_nasal2"
+        ], 
+        "subcon": [
+            "lyt_ctrl_L_mouthcorner_up", 
+            "lyt_ctrl_L_mouthcorner_low", 
+            "lyt_ctrl_L_mouthcorner_out"
+        ]
+    }, 
+    "surf_L_mouthLow": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_mouthLow"
+        ], 
+        "minor": [
+            "lyt_ctrl_C_mouth_low", 
+            "lyt_ctrl_L_mouth_low", 
+            "lyt_ctrl_L_chin", 
+            "lyt_ctrl_L_mouthcorner_low"
+        ], 
+        "subcon": [
+            "lyt_ctrl_L_mouth_low"
+        ]
+    }, 
+    "surf_L_mouthUp": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_mouthUp"
+        ], 
+        "minor": [
+            "lyt_ctrl_C_mouth_up", 
+            "lyt_ctrl_L_mouth_up", 
+            "lyt_ctrl_L_obic", 
+            "lyt_ctrl_L_mouthcorner_up"
+        ], 
+        "subcon": [
+            "lyt_ctrl_L_mouth_up",
+            "lyt_ctrl_L_obic"
+        ]
+    }, 
+    "surf_L_nasal": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_nasal"
+        ], 
+        "minor": [
+            "lyt_ctrl_L_nasal1", 
+            "lyt_ctrl_L_nasal2", 
+            "lyt_ctrl_L_obic", 
+            "lyt_ctrl_L_zygo1"
+        ], 
+        "subcon": [
+            "lyt_ctrl_L_nasal1", 
+            "lyt_ctrl_L_nasal2"
+        ]
+    }, 
+    "surf_L_zygo": {
+        "chvals": [
+            [
+                ".ty", 
+                ".tz", 
+                "None"
+            ], 
+            [
+                "uv", 
+                "vv", 
+                "None"
+            ], 
+            [
+                "translate"
+            ]
+        ], 
+        "major": [
+            "ctrl_major_L_zygo"
+        ], 
+        "minor": [
+            "lyt_ctrl_L_zygo1", 
+            "lyt_ctrl_L_zygo2", 
+            "lyt_ctrl_L_cheek"
+        ], 
+        "subcon": [
+            "lyt_ctrl_L_zygo1", 
+            "lyt_ctrl_L_zygo2"
+        ]
+    }
+}

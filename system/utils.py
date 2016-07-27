@@ -16,7 +16,6 @@ def readJson(fileName):
 def duplicateJoints(name, source, instance):
     dupjnts = []
     for i in range(len(name)):
-        print name[i]
         newjnt_name = source[i].replace('s_', instance)
 
         dj = cmds.duplicate(name[i], n=newjnt_name, ic=False, po=True)
@@ -33,7 +32,6 @@ def createJoint(name, position, instance):
     # Use a list comprehension to build joints.
     jnt_list = [cmds.joint(n=name[i].replace('s_', instance)) for i in range(len(name))]
     for j in range(len(jnt_list)):
-        print position[j]
         cmds.xform(jnt_list[j], ws=True, t=position[j])
 
     cmds.select(d=True)    
@@ -430,3 +428,9 @@ def calculateAngleBetweenNormalisedVectors(VectA, VectB, *args):
     radians = acos(dotProduct)
 
     return degrees(radians)
+
+def createRigContainer(instance, partData, *args):
+
+    rigContainerName = (partData+'_'+instance+'RIG')
+    rigContainer = cmds.container(n=rigContainerName)
+    return rigContainer
