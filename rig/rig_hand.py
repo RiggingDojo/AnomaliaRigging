@@ -130,8 +130,8 @@ class HandRigger(object):
     def connectWristAttributeToFinger(self, channelList, attributeSuffix="", minVal=-10, maxVal=10, pos=1, neg=1):
         
         for finger in self.wristFingersList:
-            if finger == "thumb":
-                continue
+            #if finger == "thumb":
+            #    continue
             
             fingerList = self.wristFingersList[finger]
             
