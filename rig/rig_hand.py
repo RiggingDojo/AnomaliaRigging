@@ -156,12 +156,12 @@ class HandRigger(object):
                         
                         if pos:
                             cmds.setAttr(driver, maxVal)
-                            cmds.setAttr(setDrivenKeyGroup + "." + attr, 50)
+                            #cmds.setAttr(setDrivenKeyGroup + "." + attr, 50)
                             cmds.setDrivenKeyframe(setDrivenKeyGroup, at=channel, cd=driver)
                         
                         if neg:
                             cmds.setAttr(driver, minVal)   
-                            cmds.setAttr(setDrivenKeyGroup + "." + attr, -50)
+                            #cmds.setAttr(setDrivenKeyGroup + "." + attr, -50)
           
                         cmds.setDrivenKeyframe(setDrivenKeyGroup, at=channel, cd=driver)
                         
@@ -419,18 +419,12 @@ class HandRigger(object):
         # add spread, stretch, and twist attributes for each finger to wrist control
         
         for finger in self.wristFingersList:
-            if finger == "thumb":
-                continue
             self.addAttributeToWrist(finger, "SPREAD", meta=1, base=1, mid=0, tip=0, end=0)
                 
         for finger in self.wristFingersList:
-            if finger == "thumb":
-                continue
             self.addAttributeToWrist(finger, "TWIST", meta=0, base=1, mid=0, tip=0, end=0)
             
         for finger in self.wristFingersList:
-            if finger == "thumb":
-                continue
             self.addAttributeToWrist(finger, "CUP", meta=1, base=1, mid=1, tip=1, end=0)
         # add FK controls to fingers and connect the set driven keys so the SDK group
         self.addFKControlsToFingers()
