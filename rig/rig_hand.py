@@ -15,14 +15,14 @@ reload(utils)
    
 class JointItem(object):
 
-    def __init__(self, jointName, fkCtrlName, ctrlGrpName, sdkName, sdkGroupName, fingerIndex, parentJoint, parentControl, fingerName, hasChildren=True):
+    def __init__(self, jointName, fkCtrlName, ctrlGrpName, sdkName, sdkGroupName, parentJoint, parentControl, fingerName, hasChildren=True):
         
         self.joint = jointName
         self.control = fkCtrlName
         self.controlGroup = ctrlGrpName
         self.sdkName = sdkName
         self.sdkGroupName = sdkGroupName
-        self.fingerIndex = fingerIndex
+        #self.fingerIndex = fingerIndex
         self.parentJoint = parentJoint
         self.parentControl = parentControl
         self.finger = fingerName
@@ -64,71 +64,7 @@ class HandRigger(object):
 
         return descendents
         
-        
-    def getThumbJoint(self, wristJoint):
-        jointCountList = {}
-        thumbJoint = ""
-        children = self.getJointChildren(wristJoint)
-        for finger in children:
-            descendants = self.getJointDescendants(finger)
-            if not descendants:
-                continue
 
-            jointCountList[len(descendants)] = finger
-        
-        minimumLength = min(jointCountList.keys()) 
-        thumbJoint = jointCountList[minimumLength]
-        return thumbJoint
-        
-    
-    def getDistanceJointToJoint(self, firstJoint, secondJoint):
-        
-        fromJoint = pc.ls(firstJoint, type="joint")[0]
-        toJoint = pc.ls(secondJoint, type="joint")[0]
-
-        fromWorldMat = fromJoint.attr("worldMatrix").get()
-        fromWorldPos = fromWorldMat[3][:3]
-        
-        toWorldMat = toJoint.attr("worldMatrix").get()
-        toWorldPos = toWorldMat[3][:3]
-                
-        
-        firstVector = dt.Vector(fromWorldPos)
-        secondVector = dt.Vector(toWorldPos)
-        
-        return firstVector.distanceTo(secondVector)
-        
-        
-    
-    def isMetacarpalsPresent(self, wristJoint, thumbJoint):
-        jointCountList = {}
-        metacarpals = False
-        
-        children = self.getJointChildren(wristJoint)
-        if not children:
-            return metacarpals
-            
-        if thumbJoint in children:
-            children.remove(thumbJoint)
-        
-        #grab any finger
-        for child in children:
-                        
-            grandChildren = self.getJointChildren(child)
-            
-            if not grandChildren:
-                continue
-                
-            grandChild = grandChildren[0]
-            
-            wristToChildDist = self.getDistanceJointToJoint(wristJoint, child)
-            childToGrandChildDist = self.getDistanceJointToJoint(child, grandChild)
-            
-            if childToGrandChildDist > wristToChildDist:
-                metacarpals = True
-                
-        return metacarpals
-        
     
     def connectWristAttributeToFinger(self, channelList, attributeSuffix="", minVal=-10, maxVal=10, pos=1, neg=1):
         
@@ -175,60 +111,80 @@ class HandRigger(object):
           
     # flags indicate which finger joints should be added for attributeName on wrist control
     def addAttributeToWrist(self, finger, attributeName, meta=1, base=1, mid=1, tip=1, end=1, canKey=1, minVal = -10, maxVal = 10):
-                
+        
+        # get list of joints under finger
         fingerList = self.wristFingersList[finger]
+        # create seperator for finger
         seperator = "-------------"
         sepLongName = finger + "_" + attributeName
+        print "ADDING ATTRIBUTE " + sepLongName + " to " + self.wristControl
         cmds.addAttr(self.wristControl, ln=sepLongName, enumName=seperator, at='enum', h=False, keyable=canKey, min=minVal, max=maxVal)
         cmds.setAttr(self.wristControl + "." + sepLongName, lock=True )
       
-        if meta == 1 and len(fingerList) > 0:
+        if end == 1 and len(fingerList) > 0:
             attrName = fingerList[0].sdkName
             longName = str(attrName) + "_" + str(attributeName)
-            cmds.addAttr(self.wristControl, ln=longName, at='float', min=minVal, max=maxVal, h=False, keyable=canKey)
+            if attrName is not "none":
+                print "ADDING ATTRIBUTE " + longName + " to " + self.wristControl
+                cmds.addAttr(self.wristControl, ln=longName, at='float', min=minVal, max=maxVal, h=False, keyable=canKey)
             
-        if base == 1 and len(fingerList) > 1:
+        if tip == 1 and len(fingerList) > 1:
             attrName = fingerList[1].sdkName
             longName = str(attrName) + "_" + str(attributeName)
-            cmds.addAttr(self.wristControl, ln=longName, at='float', min=minVal, max=maxVal, h=False, keyable=canKey)
+            if attrName is not "none":
+                print "ADDING ATTRIBUTE " + longName + " to " + self.wristControl
+                cmds.addAttr(self.wristControl, ln=longName, at='float', min=minVal, max=maxVal, h=False, keyable=canKey)
             
         if mid == 1 and len(fingerList) > 2:
             attrName = fingerList[2].sdkName
             longName = str(attrName) + "_" + str(attributeName)
-            cmds.addAttr(self.wristControl, ln=longName, at='float', min=minVal, max=maxVal, h=False, keyable=canKey)
+            if attrName is not "none":
+                print "ADDING ATTRIBUTE " + longName + " to " + self.wristControl
+                cmds.addAttr(self.wristControl, ln=longName, at='float', min=minVal, max=maxVal, h=False, keyable=canKey)
             
-        if tip == 1 and len(fingerList) > 3:
+        if base == 1 and len(fingerList) > 3:
             attrName = fingerList[3].sdkName
             longName = str(attrName) + "_" + str(attributeName)
-            cmds.addAttr(self.wristControl, ln=longName, at='float', min=minVal, max=maxVal, h=False, keyable=canKey)       
+            if attrName is not "none":
+                print "ADDING ATTRIBUTE " + longName + " to " + self.wristControl
+                cmds.addAttr(self.wristControl, ln=longName, at='float', min=minVal, max=maxVal, h=False, keyable=canKey)       
               
-        if end == 1 and len(fingerList) > 4:
+        if meta == 1 and len(fingerList) > 4:
             attrName = fingerList[4].sdkName
             longName = str(attrName) + "_" + str(attributeName)
-            cmds.addAttr(self.wristControl, ln=longName, at='float', min=minVal, max=maxVal, h=False, keyable=canKey)    
+            if attrName is not "none":
+                print "ADDING ATTRIBUTE " + longName + " to " + self.wristControl
+                cmds.addAttr(self.wristControl, ln=longName, at='float', min=minVal, max=maxVal, h=False, keyable=canKey)    
            
             
     def addFKControlsToFingers(self):
+        
         for finger in self.wristFingersList:
             
             fingerList = self.wristFingersList[finger]
             jointControl = ""
-            
+            print "LISTED UNDER: " + finger + ":"
+            print fingerList
+        
             # for every joint in each finger
-            for index in range(len(fingerList) - 1):
+            #for index in range(len(fingerList) - 1):
+            for index, e in reversed(list(enumerate(fingerList))):
                 # joint in finger
                 jointItem = fingerList[index]
                 
                 # check if the last joint in the finger
                 if jointItem is None:# or index == (len(fingerList) - 1):
                     continue
-                                    
+                                        
                 joint = jointItem.joint
                 jointControl = jointItem.control
                 fkControlGroup = jointItem.controlGroup
                 controlSDK = jointItem.sdkGroupName
                 parentJoint = jointItem.parentJoint
                 parentControl = ""
+                
+                if jointControl == "none":
+                    continue
                 
                 if parentJoint is self.wristControl:
                     parentControl = self.wristControl
@@ -239,151 +195,80 @@ class HandRigger(object):
                 controlRot = cmds.xform(joint, q=True, rotation=True, worldSpace=True)
                 controlObj = cmds.circle( nr=(1, 0, 0), c=(0, 0, 0), n=(jointControl), r=3.0)
                 
+                print "jointControl=" + jointControl + " .... fkControlGroup=" + fkControlGroup
+
                 controlGroup = cmds.group(jointControl, n=fkControlGroup)
                 sdkGroup = cmds.group(jointControl, n=controlSDK)
                 
 
                 cmds.xform(controlGroup, a=True, ro=controlRot, t=controlWorldSp )
-                cmds.parentConstraint(controlObj, joint) 
-                                 
+                cmds.parentConstraint(controlObj, joint)  
                 cmds.parent(controlGroup, parentControl)
 
                         
 
-       
-    # function that uses world matrices of objects to orient joints down the chain
-    def orientHandJointTo(self, target, object, handed):
-        objectJoint = pc.ls(object, type="joint")[0]
-        objWorldMat = objectJoint.attr("worldMatrix").get()
-        objWorldPos = objWorldMat[3][:3]
-        
-        
-        tarJoint = pc.ls(target, type="joint")[0]    
-        tarWorldMat = tarJoint.attr("worldMatrix").get()
-        tarWorldPos = tarWorldMat[3][:3]
-        
-        wristJoint = pc.ls(self.wristJoint, type="joint")[0]
-        wristWorldMat = wristJoint.attr("worldMatrix").get()
-        wristWorldPos = wristWorldMat[3][:3]    
-            
-        # get aim vector from object to target
-        if handed == "L":
-            aimVector = tarWorldPos - objWorldPos
-        if handed == "R":
-            aimVector = objWorldPos - tarWorldPos
 
-        aimVector = dt.Vector(aimVector)
-        aimVector.normalize()
-        aimX = aimVector
-        
-        # get z axis used to rotate object around its z
-        objUpVector = dt.Vector(objWorldMat[2][:3])
-        
-        # find dot product of objUpVector and aimX to help get up vector of aimX
-        dotProduct = dt.dot(objUpVector, aimX)
-        
-        # construct rotation matrix
-        aimRotationMat = dt.Matrix(3)
-        aimRotationMat[0] = aimX
-        aimRotationMat[1] = dt.Vector(wristWorldMat[1][:3])
-        aimRotationMat[2] = dt.Vector(wristWorldMat[2][:3])
-        
-        # convert rotation matrix to Euler angles
-        aimRotationTransMat = dt.TransformationMatrix(aimRotationMat)
-        aimRotationQuaternion = aimRotationTransMat.getRotationQuaternion()
-        
-        # set object rotation to final aim rotation vector
-        objectJoint.setOrientation(aimRotationQuaternion)
-
-
-
-    
-    def getJointItemFromIndex(self, fingerList, findIndex):
-        # get finger position of the index
-        fingerIndex = 0
-        for fingerPos in fingerList:
-            fingerIndex = fingerList[fingerPos].fingerIndex
-            if findIndex == fingerIndex:
-                break
-                
-        if self.metacarpalsPresent:
-            if fingerIndex == 0:
-                if 'meta' in fingerList:
-                    return fingerList['meta']
-            elif fingerIndex == 1:
-                if 'base' in fingerList:
-                    return fingerList['base'] 
-            elif fingerIndex ==  (len(fingerList)-2):
-                if 'tip' in fingerList:
-                    return fingerList['tip']
-            elif fingerIndex ==  (len(fingerList)-1):
-                if 'end' in fingerList:
-                    return fingerList['end']
-            else:
-                return fingerList[fingerPos]            
-                    
-                                
-        if not self.metacarpalsPresent:
-            if fingerIndex == 0:
-                if 'base' in fingerList:
-                    return fingerList['base'] 
-            elif fingerIndex ==  (len(fingerList)-2):
-                if 'tip' in fingerList:
-                    return fingerList['tip']
-            elif fingerIndex ==  (len(fingerList)-1):
-                if 'end' in fingerList:
-                    return fingerList['end']
-            else:
-                return fingerList[fingerPos]            
-    
   
-    def ui(self, *args):
+    def ui(self):
         """ Check to see if the UI exists """
         windowName = "HandRigger"
         if cmds.window(windowName, exists=True):
             cmds.deleteUI(windowName)
         """ Define width and height for buttons and windows"""    
-        windowWidth = 120
-        windowHeight = 300
+        windowWidth = 125
+        windowHeight = 400
         buttonWidth = 120
         buttonHeight = 22
 
-        self.UIElements["window"] = cmds.window(windowName, width=windowWidth, height=windowHeight, title="RDojo_UI", sizeable=True)
+        self.UIElements["window"] = cmds.window(windowName, width=windowWidth, height=windowHeight, title="Hand Rigger", sizeable=True)
 
         self.UIElements["guiFrameLayout1"] = cmds.columnLayout( adjustableColumn=True )
         self.UIElements["guiFlowLayout1"] = cmds.flowLayout(v=True, width=windowWidth, height=windowHeight, wr=False, bgc=[0.2, 0.2, 0.2], p=self.UIElements["guiFrameLayout1"])
         
 
         cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        cmds.text( label='Thumb:' )
         self.UIElements["selthumb"] = cmds.button(label="select thumb joint", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
             p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selthumb'))
 
         cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        cmds.text( label='Index:' )
         self.UIElements["selindex"] = cmds.button(label="select index joint", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
             p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selindex'))
         
         cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        cmds.text( label='Middle:' )
         self.UIElements["selmiddle"] = cmds.button(label="select middle joint", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
             p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selmiddle'))
         
         cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        cmds.text( label='Ring:' )
         self.UIElements["selring"] = cmds.button(label="select ring joint", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
             p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selring'))
         
         cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        cmds.text( label='Pinky:' )
         self.UIElements["selpinky"] = cmds.button(label="select pinky joint", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
             p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selpinky'))
 
+        cmds.separator(w=110, h=20, hr=True, p=self.UIElements["guiFlowLayout1"])
+        cmds.text( label='Wrist Control:' )
+        self.UIElements["selcontrol"] = cmds.button(label="select wrist control", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
+            p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selcontrol'))
+        
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        cmds.text( label='Wrist Joint:' )
+        self.UIElements["selwrist"] = cmds.button(label="select wrist joint", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
+            p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selwrist'))
 
         cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
         sides = ['L_', 'R_', 'C_']
         self.UIElements["sideMenu"] = cmds.optionMenu('Side', label='side', p=self.UIElements["guiFlowLayout1"]) 
         for s in sides:
             cmds.menuItem(label=s, p=self.UIElements["sideMenu"])  
-
+            
         cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
-        self.UIElements["righand"] = cmds.button(label="Rig The Hand", width=buttonWidth, height=buttonHeight, bgc=[0.2, 0.4, 0.2], p=self.UIElements["guiFlowLayout1"], c=partial(self.createHandRig, args[0], args[1]))
-            # createHandRig(self, wristControl, wristJoint)
+        self.UIElements["righand"] = cmds.button(label="Rig The Hand", width=buttonWidth, height=buttonHeight, bgc=[0.2, 0.4, 0.2], p=self.UIElements["guiFlowLayout1"], c=self.createHandRig)
 
         """ Show the window"""
         cmds.showWindow(windowName)
@@ -395,54 +280,46 @@ class HandRigger(object):
             return
         sel=cmds.ls(sl=True)[0]
         cmds.button(self.UIElements[joint], edit=True, label=sel, bgc=[0.2, 0.4, 0.2])
+        
 
-
+    
         
     ########  create hand rig function   ########
-    def createHandRig(self, wristControl, wristJoint):
-    
-        self.wristJoint = wristJoint
-        if wristControl:
-            self.wristControl = wristControl
-        else:
-            print "Creating wrist control"
-
-        # keep track of parents of every joint under wrist joint
-        allFingersInWrist = self.getJointChildren(self.wristJoint)
-        originalThumbJoint = self.getThumbJoint(self.wristJoint)
-        self.metacarpalsPresent = self.isMetacarpalsPresent(self.wristJoint, originalThumbJoint)
-
-        fingerIndex = 0;
+    #def createHandRig(self, wristControl, wristJoint):
+    def createHandRig(self, args):
         
-                
-        for fingerInWrist in allFingersInWrist:
-            # accounts for arbitrary number of fingers
-            fingerJoints = self.getJointDescendants(fingerInWrist)
+        self.wristJoint = cmds.button(self.UIElements["selwrist"], q=True, label=True)
+        self.wristControl = cmds.button(self.UIElements["selcontrol"], q=True, label=True)
+        
+        # keep track of parents of every joint under wrist joint
+        indexJoint = cmds.button(self.UIElements["selindex"], q=True, label=True)
+        ringJoint = cmds.button(self.UIElements["selring"], q=True, label=True)
+        middleJoint = cmds.button(self.UIElements["selmiddle"], q=True, label=True)
+        pinkyJoint = cmds.button(self.UIElements["selpinky"], q=True, label=True)
+        thumbJoint = cmds.button(self.UIElements["selthumb"], q=True, label=True)
+        
+        fingerNameList = {
+                        "index": indexJoint,
+                        "ring": ringJoint,
+                        "middle": middleJoint,
+                        "pinky": pinkyJoint,
+                        "thumb": thumbJoint
+                        }
+        
+        for fingerName in fingerNameList:
             
-            fingerJoints.append(fingerInWrist)
-            print fingerJoints
-            return
+            jointDes = self.getJointDescendants(fingerNameList[fingerName])
+            fingerJoints = [desc for desc in jointDes]
+            fingerJoints.append(fingerNameList[fingerName])
+            self.wristFingersList[fingerName] = []
 
+            
             jointIndex = len(fingerJoints)-1;
-            fingerList = []
-            fingerName = ""
-
+            
+            # loop through every joint in every finger
             for joint in fingerJoints:
-                
-                if jointIndex == len(fingerJoints)-1:
-                    longName = fingerJoints[-1]
                     
-                    fingerName = longName.split('|')[-1]
-                                        
-                    seperator = "-------------"
-                    cmds.addAttr(self.wristControl, ln=fingerName, enumName=seperator, at='enum', h=False, keyable=True)
-                    cmds.setAttr(self.wristControl + "." + fingerName, lock=True )
-                    
-                    
-                    parentJoint = fingerJoints[:2]
-                    parentControl = self.moduleInfo[fingerName][jointIndex]["FK_CTRL"].replace('s_', self.handed + "_")
-                
-                elif jointIndex == 0:
+                if jointIndex == 0:
                     parentJoint = self.wristJoint
                     parentControl = self.wristControl
                 
@@ -463,27 +340,24 @@ class HandRigger(object):
                                        
                                       
                 #create the JointItem:
-                              #(self, jointName, fkCtrlName, ctrlGrpName, sdkName, sdkGroupName, fingerIndex, parentJoint, parentControl, fingerName, hasChildren=True):
-                jointItem = JointItem(jointName, fkCtrlName, ctrlGrpName, sdkName, sdkGroupName, fingerIndex, parentJoint, parentControl, fingerName, hasChildFlag)
-                
-                #fingerList.append(jointItem)
-                fingerList.insert(0, jointItem)
-                
+                              #(self, jointName, fkCtrlName, ctrlGrpName, sdkName, sdkGroupName, parentJoint, parentControl, fingerName, hasChildren=True):
+                jointItem = JointItem(jointName, fkCtrlName, ctrlGrpName, sdkName, sdkGroupName, parentJoint, parentControl, fingerName, hasChildFlag)
+
                 #set variables for next iteration and rename joint 
                 joint = cmds.rename(joint, jointItem.joint)
                 
+                newList = self.wristFingersList[fingerName]
+                newList.append(jointItem)
+                self.wristFingersList[fingerName] = newList
+                
                 ##### add base, mid, tip attributes to wrist control
-                if hasChildFlag:
-                    cmds.addAttr(self.wristControl, ln=jointItem.sdkName, at='float', min=-10, max=10, h=False, keyable=True)
+                #if hasChildFlag:
+                #    print "ADDING " + jointItem.sdkName + " TO " + self.wristControl
+                #    #cmds.addAttr(self.wristControl, ln=jointItem.sdkName, at='float', min=-10, max=10, h=False, keyable=True)
                 
                 jointIndex = jointIndex - 1
-                
-            self.wristFingersList[fingerName] = fingerList
-
-            fingerIndex = fingerIndex + 1 
         
         # add spread, stretch, and twist attributes for each finger to wrist control
-        
         for finger in self.wristFingersList:
             self.addAttributeToWrist(finger, "SPREAD", meta=1, base=1, mid=0, tip=0, end=0)
                 
@@ -522,18 +396,18 @@ numjnts = 1
 class Rig_Hand:
     def __init__(self, uiinfo):
         # run the hand rigging script from selection(s)
-        selection = cmds.ls( selection=True )
-        if len(selection) == 2:
-            hand = HandRigger(uiinfo) 
+        #selection = cmds.ls( selection=True )
+        #if len(selection) == 2:
+        hand = HandRigger(uiinfo) 
         
             # COMMENTED OUT TO TEST
             #check if first selection is a transform & check if the second selection is a joint
-            if cmds.objectType(selection[0]) == "transform" and cmds.objectType(selection[1]) == "joint":
+            #if cmds.objectType(selection[0]) == "transform" and cmds.objectType(selection[1]) == "joint":
                 #hand.createHandRig(selection[0], selection[1])
-                hand.ui(selection[0], selection[1])
-            else:
-                errorMsg = "HandRigger Error: First selection must be wrist control, the second selection must be top parent joint of wrist."
-                sys.exit(errorMsg)
+        hand.ui()
+            #else:
+            #     errorMsg = "HandRigger Error: First selection must be wrist control, the second selection must be top parent joint of wrist."
+            #    sys.exit(errorMsg)
 
         sys.stdout.write('HandRigger: Finished!')
         
