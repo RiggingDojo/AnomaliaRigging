@@ -102,12 +102,20 @@ def connectThroughBC(parentsA, parentsB, children, instance, switchattr ):
     for j in range(len(children)):
         switchPrefix = children[j].partition('_')[2]
         bcNodeT = cmds.shadingNode("blendColors", asUtility=True, n=instance + 'bcNodeT_switch_' + switchPrefix)
-        cmds.connectAttr(switchattr, bcNodeT  + '.blender')
         bcNodeR = cmds.shadingNode("blendColors", asUtility=True, n=instance + 'bcNodeR_switch_' + switchPrefix)
-        cmds.connectAttr(switchattr, bcNodeR  + '.blender')
         bcNodeS = cmds.shadingNode("blendColors", asUtility=True, n=instance + 'bcNodeS_switch_' + switchPrefix)
-        cmds.connectAttr(switchattr, bcNodeS  + '.blender')
+        
         constraints.append([bcNodeT, bcNodeR, bcNodeS])
+        # connect to switchattr
+        if switchattr == 'None':
+            cmds.setAttr(bcNodeT  + '.blender', 1)
+            cmds.setAttr(bcNodeR  + '.blender', 1)
+            cmds.setAttr(bcNodeS  + '.blender', 1)
+        else:
+            cmds.connectAttr(switchattr, bcNodeT  + '.blender')
+            cmds.connectAttr(switchattr, bcNodeR  + '.blender')
+            cmds.connectAttr(switchattr, bcNodeS  + '.blender')
+
         # Input Parents
         cmds.connectAttr(parentsA[j] + '.translate', bcNodeT + '.color1')        
         cmds.connectAttr(parentsA[j] + '.rotate', bcNodeR + '.color1')       
@@ -434,3 +442,135 @@ def createRigContainer(instance, partData, *args):
     rigContainerName = (partData+'_'+instance+'RIG')
     rigContainer = cmds.container(n=rigContainerName)
     return rigContainer
+
+pairs = [['world_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'World']
+, ['root_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'Root']]
+, ['cog_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'COG']]
+, ['C_spine_pelvis_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'Pelvis' ]
+, ['C_spine_chest_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'Chest'] 
+
+pairs = [['world_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'World']
+, ['root_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'Root']]
+, ['cog_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'COG']]
+, ['C_spine_pelvis_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'Pelvis' ]
+, ['C_spine_chest_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'Chest'], 
+
+
+def createArmSwitches(pairs, instance):
+    parents = []
+    enumvals = []
+    connodes = []
+    for p in range(len(pairs)):
+        parents.append(pairs[p][0])
+        con = cmds.shadingNode("condition", asUtility=True, n=instance + pairs[p][0] + 'Switch_CON')
+        connodes.append(con)
+        cmds.setAttr(con+'.secondTerm', p)
+        enumvals.append(pairs[p][2])
+        
+    
+    ctrlparent = cmds.listRelatives(pairs[0][1], p=True)[0]
+    switchgrpname = pairs[0][1].replace('_GRP', '_SWITCH' )
+    sgrp = cmds.group(n=switchgrpname, em=True)
+    tc = cmds.parentConstraint(pairs[0][1], sgrp, mo=False)
+    cmds.delete(tc)
+    cmds.parent(sgrp, ctrlparent)
+    cmds.parent(pairs[0][1], sgrp)
+    parentcon = cmds.parentConstraint(parents[0], parents[1], parents[2], parents[3], parents[4], sgrp, mo=True)
+    cmds.addAttr(pairs[p][2], at='enum', en="World:Root:COG:Pelvis:Chest:", shortName="switch", longName="switch", k=True)
+    
+    for c in range(len(connodes)):    
+        cmds.setAttr(connodes[c]+'.colorIfTrueR', 1) 
+        cmds.setAttr(connodes[c]+'.colorIfTrueG', 1) 
+        cmds.setAttr(connodes[c]+'.colorIfTrueB', 1) 
+        cmds.setAttr(connodes[c]+'.colorIfFalseR', 0)
+        cmds.setAttr(connodes[c]+'.colorIfFalseG', 0)
+        cmds.setAttr(connodes[c]+'.colorIfFalseB', 0)
+        cmds.connectAttr(pairs[0][2]+'.switch', connodes[c]+'.firstTerm')
+        cmds.connectAttr(connodes[c]+'.outColorR', parentcon[0] + '.' + pairs[c][0] + 'W' + str(c))
+"""        
+createArmSwitches(pairs, 'R_01_')
+        
+pairs = [['world_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'World']
+, ['root_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'Root']
+, ['cog_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'COG']
+, ['C_spine_pelvis_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'Pelvis' ]
+, ['C_spine_chest_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'Chest'] ]
+
+pairs = [['world_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'World']
+, ['root_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'Root']
+, ['cog_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'COG']
+, ['C_spine_pelvis_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'Pelvis' ]
+, ['C_spine_chest_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'Chest']]
+"""
+        
+def setupForMocap():
+    sel = cmds.ls(sl=True, type='joint')
+    jntlist = []
+
+    for s in sel:
+        if 'END' not in s:
+            jntlist.append(s)
+            
+    for j in jntlist:
+        newname = j.replace('_JNT', '_MOCAP')
+        parcon = cmds.listConnections(j, t='parentConstraint')
+        if parcon != None:
+            cmds.delete(parcon[0])
+        cmds.rename(j, newname)
+    
+    
+def createMocapSkeleton(): 
+    """
+    Create a mocap skeleton and try to attach
+    controls to it
+    """
+    bindjnts = []
+    cmds.select('C_root_JNT', hi=True)
+    sel = cmds.ls(sl=True, type='joint')
+    cmds.select(d=True)
+    for s in sel: 
+        if "_JNT" in s:
+            bindjnts.append(s)
+     
+    jntinfo = []
+    for j in bindjnts:
+        mcname=j.replace('_JNT', '_MOCAP')
+        par = cmds.listRelatives(j, p=True)
+        if par != None:
+            mjpar = par[0].replace('_JNT', '_MOCAP')
+        if par != None:
+            jntinfo.append([j, mcname, mjpar])
+        else:
+            jntinfo.append([j, mcname, 'NONE'])
+     
+    for each in jntinfo:
+        print each 
+        if cmds.objExists(each[1]):
+            cmds.delete(each[1]) 
+        try:  
+            cmds.duplicate(each[0], po=True, n=each[1])
+            cmds.select(d=True)
+        except: pass
+    for each in jntinfo:
+        print each
+        if each != 'NONE':
+            try:
+                cmds.parent(each[1], each[2])
+            except: pass
+
+
+
+"""
+mocappairs = [['R_wrist_MOCAP', 'R_arm_IK_CTRL_MOCAP'], ['R_elbow_MOCAP', 'R_arm_PV_CTRL_MOCAP'],
+['R_wrist_MOCAP', 'R_wrist_FK_CTRL'], ['R_elbow_MOCAP', 'R_elbow_FK_CTRL'], ['R_shoulder_MOCAP', 'R_shoulder_FK_CTRL'],
+['L_wrist_MOCAP', 'L_arm_IK_CTRL_MOCAP'], ['L_elbow_MOCAP', 'L_arm_PV_CTRL_MOCAP'],
+['L_wrist_MOCAP', 'L_wrist_FK_CTRL'], ['L_elbow_MOCAP', 'L_elbow_FK_CTRL'], ['L_shoulder_MOCAP', 'L_shoulder_FK_CTRL'],
+
+['L_ankle_MOCAP', 'L_leg_IK_CTRL_MOCAP'], ['L_knee_MOCAP', 'L_leg_PV_CTRL_GRP'],
+['L_ankle_MOCAP', 'L_ankle_FK_CTRL'], ['L_knee_MOCAP', 'L_knee_FK_CTRL'], ['L_hip_MOCAP', 'L_hip_FK_CTRL'],
+['R_ankle_MOCAP', 'R_leg_IK_CTRL_MOCAP'], ['R_knee_MOCAP', 'R_leg_PV_CTRL_GRP'],
+['R_ankle_MOCAP', 'R_ankle_FK_CTRL'], ['R_knee_MOCAP', 'R_knee_FK_CTRL'], ['R_hip_MOCAP', 'R_hip_FK_CTRL'],
+
+['C_pelvis_MOCAP', 'C_spine_01_MOCAP'], ['C_spine_01_MOCAP', 'L_knee_FK_CTRL'], ['C_spine_02_MOCAP', 'L_hip_FK_CTRL'],
+['C_spine_03_MOCAP', 'C_spine_01_MOCAP'], ['C_neck_MOCAP', 'C_neck_FK_CTRL_MOCAP'], ['C_head_MOCAP', 'C_head_FK_CTRL_MOCAP'],
+"""
