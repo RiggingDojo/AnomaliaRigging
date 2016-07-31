@@ -41,12 +41,19 @@ class AR_UI:
         buttonWidth = 55
         buttonHeight = 22
 
-        self.UIElements["window"] = cmds.window(windowName, width=windowWidth, height=windowHeight, title="RDojo_UI", sizeable=True)
+        self.UIElements["window"] = cmds.window(windowName, width=windowWidth, height=windowHeight, title="RDojo_UI", sizeable=True, menuBar=True)
 
         self.UIElements["mainColLayout"] = cmds.columnLayout( adjustableColumn=True )
         self.UIElements["guiFrameLayout1"] = cmds.frameLayout( label='rigging', borderStyle='in', p=self.UIElements["mainColLayout"] )
         self.UIElements["guiFlowLayout1"] = cmds.flowLayout(v=False, width=windowWidth, height=windowHeight/2, wr=False, bgc=[0.2, 0.2, 0.2], p=self.UIElements["guiFrameLayout1"])
         
+        """ Make a menu bar """
+        self.UIElements['menu'] = cmds.menu(label='Utils', tearOff=True)
+
+        cmds.menuItem(label='Color Picker', c=self.openColorPalette)
+        cmds.menuItem(label='Connect Skeleton', c=self.openColorPalette)
+        cmds.menuItem(label='Space Switch', c=self.spaceSwitchUi)
+
         cmds.separator(w=10, hr=True, st='none', p=self.UIElements["guiFlowLayout1"])
         self.UIElements["rigMenu"] = cmds.optionMenu('Rig_Install', label='Rig', p= self.UIElements["guiFlowLayout1"]) 
         
@@ -87,6 +94,11 @@ class AR_UI:
                                                     bgc=[0.2, 0.4, 0.2], p=self.UIElements["miscButtonLayout"], 
                                                     c=self.loadFootTool)
 
+        # Face button
+        self.UIElements["facebutton"] = cmds.button(label="face", width=buttonWidth, height=buttonHeight,
+                                                    bgc=[0.2, 0.4, 0.2], p=self.UIElements["miscButtonLayout"], 
+                                                    c=self.loadFaceTool)
+
         """ Show the window"""
         cmds.showWindow(windowName)
       
@@ -124,3 +136,106 @@ class AR_UI:
         reload(gfr)
         gfr = gfr.GR_FootRig()
         ui = gfr.ui()
+
+    def loadFaceTool(self, *args):
+        import tools.face_rigger.face_rigger as fr
+        reload(fr)
+        fr = fr.Face_Rigger()
+        fr.ui()
+
+    @staticmethod
+    def openColorPalette(_):
+        import maya.mel as mel
+        mel.eval("objectColorPalette ();")
+
+    def connectSkeleton(_):
+        if cmds.ls(sl=True) == []:
+            return cmds.headsUpMessage("Select the joints you want to connect")
+        sel = cmds.ls(sl=True, type='joint')
+        failcon = []
+        for s in sel:
+            rjname = s.replace('_JNT', '_RIGJNT')
+            try:
+                cmds.parentConstraint(rjname, s, mo=True)
+                print rjname
+                print s
+                print "Success"
+            except:
+                failcon.append(s)
+                
+        print failcon
+
+    def spaceSwitchUi(self, *args):
+        """ Check to see if the UI exists """
+        windowName = "SpaceSwitch"
+        if cmds.window(windowName, exists=True):
+            cmds.deleteUI(windowName)
+        """ Define width and height for buttons and windows"""    
+        windowWidth = 130
+        windowHeight = 300
+        buttonWidth = 128
+        buttonHeight = 22
+
+        self.UIElements["window"] = cmds.window(windowName, width=windowWidth, height=windowHeight, title="Space Switch", sizeable=True)
+
+        self.UIElements["guiFrameLayout1"] = cmds.columnLayout( adjustableColumn=True )
+        self.UIElements["guiFlowLayout1"] = cmds.flowLayout(v=True, width=windowWidth, height=windowHeight/2, wr=False, bgc=[0.2, 0.2, 0.2], p=self.UIElements["guiFrameLayout1"])
+ 
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        self.UIElements["selparent"] = cmds.button(label="select the parent", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
+            p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, "selparent"))
+
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        self.UIElements["selchild"] = cmds.button(label="select the child", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
+            p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, "selchild"))
+
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        self.UIElements["selattr"] = cmds.button(label="select control for ss attr", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
+            p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, "selattr"))
+
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        self.UIElements["makeswitch"] = cmds.button(label="Make The Switch", width=buttonWidth, height=buttonHeight, bgc=[0.2, 0.4, 0.2], 
+            p=self.UIElements["guiFlowLayout1"], c=self.createControlLink)
+
+        """ Show the window"""
+        cmds.showWindow(windowName)
+
+    def selBtnCallback(self, ctrl, *args):
+        if cmds.ls(sl=True) == []:
+            return
+        sel=cmds.ls(sl=True)[0]
+        cmds.button(self.UIElements[ctrl], edit=True, label=sel, bgc=[0.2, 0.4, 0.2])
+
+    def createControlLink(self, *args):
+        # TODO: use part_utils version
+        source = cmds.button(self.UIElements["selparent"], q=True, l=True)
+        target = cmds.button(self.UIElements["selchild"], q=True, l=True)
+        attrctrl = cmds.button(self.UIElements["selattr"], q=True, l=True)
+
+        tgtGrpName = source + '_' + target + '_LINKGRP'
+        sourcePos = cmds.xform(source, q=True, ws=True, t=True)
+
+        tgtGrp = cmds.group(n=tgtGrpName, em=True)
+        cmds.xform(tgtGrp, ws=True, t=sourcePos)
+
+        targetParent = cmds.listRelatives(target, p=True)
+
+        cmds.parent(tgtGrp, targetParent)
+        cmds.makeIdentity(tgtGrp, apply=True)
+        cmds.parent(target, tgtGrp)
+
+        pcon = cmds.parentConstraint(source, tgtGrp, mo=True)
+
+        # Try do add and connect an attribute.
+        cmds.listAttr(target, k=True, ud=True)
+
+        # Generate an attribute name
+        if source.endswith('_CTRL') == True or source.endswith('_RIGJNT') == True:
+            srcname = source.rpartition('_')[0]
+            cmds.addAttr(attrctrl, ln=srcname, at="enum", en="off:on:", k=True)
+            # Connect the attr to the parent constraint
+            cmds.connectAttr(attrctrl + "." + srcname, pcon[0] + "." + source + "W0")
+        else:
+            cmds.addAttr(ln=source, at="enum", en="off:on:", k=True)
+            # Connect the attr to the parent constraint
+            cmds.connectAttr(attrctrl, target + "." + source, pcon[0] + "." + source + "W0")

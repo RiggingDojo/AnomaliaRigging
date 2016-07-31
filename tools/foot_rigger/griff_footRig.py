@@ -14,7 +14,7 @@ class GR_FootRig:
             cmds.deleteUI(windowName)
         """ Define width and height for buttons and windows"""    
         windowWidth = 120
-        windowHeight = 300
+        windowHeight = 320
         buttonWidth = 120
         buttonHeight = 22
 
@@ -34,6 +34,10 @@ class GR_FootRig:
         cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
         self.UIElements["selik"] = cmds.button(label="select foot ikHandle", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
             p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selik'))
+
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        self.UIElements["selankle"] = cmds.button(label="select foot ankle_IKJ", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
+            p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selankle'))
 
         cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
         sides = ['L_', 'R_', 'C_']
@@ -77,6 +81,7 @@ class GR_FootRig:
     def setupFoot(self, *args):
         footControl = cmds.button(self.UIElements["selctrl"], q=True, l=True)
         ikHandleName = cmds.button(self.UIElements["selik"], q=True, l=True)
+        ikAnkleJnt = cmds.button(self.UIElements["selankle"], q=True, l=True)
         jntornt = [0.0, 0.0, 0.0]
         orient = ['.rx', '.ry', '.rz']
         side = cmds.optionMenu(self.UIElements["sideMenu"], q=True, v=True) 
@@ -100,13 +105,15 @@ class GR_FootRig:
                     cmds.addAttr(shortName=attr, longName=attr, defaultValue=0, k=True)
                 except: pass
         
-        ikjnts = [side + 'foot_IKJ', side + 'ball_IKJ',  side + 'toe_IKJ', side + 'heel_IKJ']
+        ikjnts = [side + 'ball_IKJNT',  side + 'toe_IKJNT', side + 'heel_IKJNT']
         cmds.select(d=True)
 
-        cmds.joint(n=ikjnts[0], p=self.foot_info['ankle_lyt'][1])
-        cmds.joint(n=ikjnts[1], p=self.foot_info['ball_lyt'][1])
-        cmds.joint(n=ikjnts[2], p=self.foot_info['toe_lyt'][1])
-        cmds.joint(n=ikjnts[3], p=self.foot_info['heel_lyt'][1])     
+        #cmds.joint(n=ikjnts[0], p=self.foot_info['ankle_lyt'][1])
+        cmds.joint(n=ikjnts[0], p=self.foot_info['ball_lyt'][1])
+        cmds.joint(n=ikjnts[1], p=self.foot_info['toe_lyt'][1])
+        cmds.joint(n=ikjnts[2], p=self.foot_info['heel_lyt'][1])  
+        cmds.parent(ikjnts[0], ikAnkleJnt )   
+        cmds.select(d=True)
 
         # NOTE:  Add all created nodes to a list.
         footNodes = []
@@ -147,9 +154,9 @@ class GR_FootRig:
         # Make Ik Handles
         ikSolvername = ikHandleName.replace('ikh', suffix + 'ikSol_foot')
         ikSol = cmds.ikSolver( st='ikSCsolver', ep=0.0, n=ikSolvername)
-        ikBall = cmds.ikHandle(n=suffix + "ikh_ball" , sj=ikjnts[0], ee=ikjnts[1], s="sticky", sol=ikSol)
+        ikBall = cmds.ikHandle(n=suffix + "ikh_ball" , sj=ikAnkleJnt , ee=ikjnts[0], s="sticky", sol=ikSol)
         footNodes.append(ikBall[0])
-        ikToe = cmds.ikHandle(n=suffix + "ikh_toe", sj=ikjnts[1], ee=ikjnts[2], s="sticky", sol=ikSol)
+        ikToe = cmds.ikHandle(n=suffix + "ikh_toe", sj=ikjnts[0], ee=ikjnts[1], s="sticky", sol=ikSol)
         footNodes.append([ikToe[0], ikBall[0]])
         
         # Create the foot groups
