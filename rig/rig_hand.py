@@ -1,4 +1,5 @@
 import maya.cmds as cmds
+from functools import partial
 import maya.mel
 from pymel.all import *
 import pymel.core as pc
@@ -15,6 +16,7 @@ reload(utils)
 class JointItem(object):
 
     def __init__(self, jointName, fkCtrlName, ctrlGrpName, sdkName, sdkGroupName, fingerIndex, parentJoint, parentControl, fingerName, hasChildren=True):
+        
         self.joint = jointName
         self.control = fkCtrlName
         self.controlGroup = ctrlGrpName
@@ -30,6 +32,8 @@ class JointItem(object):
 class HandRigger(object):
     
     def __init__(self, uiinfo):
+        self.UIElements={}
+
         self.wristFingersList = {}
         self.wristJoint = ""
         self.thumbJointList = None
@@ -47,7 +51,6 @@ class HandRigger(object):
     def errorMessage(self, str):
         errorMsg = "HandRigger Error: " + str
         sys.exit(errorMsg)
-    
     
 
     def getJointChildren(self, root):
@@ -332,7 +335,68 @@ class HandRigger(object):
                     return fingerList['end']
             else:
                 return fingerList[fingerPos]            
+    
   
+    def ui(self, *args):
+        """ Check to see if the UI exists """
+        windowName = "HandRigger"
+        if cmds.window(windowName, exists=True):
+            cmds.deleteUI(windowName)
+        """ Define width and height for buttons and windows"""    
+        windowWidth = 120
+        windowHeight = 300
+        buttonWidth = 120
+        buttonHeight = 22
+
+        self.UIElements["window"] = cmds.window(windowName, width=windowWidth, height=windowHeight, title="RDojo_UI", sizeable=True)
+
+        self.UIElements["guiFrameLayout1"] = cmds.columnLayout( adjustableColumn=True )
+        self.UIElements["guiFlowLayout1"] = cmds.flowLayout(v=True, width=windowWidth, height=windowHeight, wr=False, bgc=[0.2, 0.2, 0.2], p=self.UIElements["guiFrameLayout1"])
+        
+
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        self.UIElements["selthumb"] = cmds.button(label="select thumb joint", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
+            p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selthumb'))
+
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        self.UIElements["selindex"] = cmds.button(label="select index joint", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
+            p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selindex'))
+        
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        self.UIElements["selmiddle"] = cmds.button(label="select middle joint", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
+            p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selmiddle'))
+        
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        self.UIElements["selring"] = cmds.button(label="select ring joint", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
+            p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selring'))
+        
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        self.UIElements["selpinky"] = cmds.button(label="select pinky joint", width=buttonWidth, height=buttonHeight, bgc=[0.4, 0.2, 0.2], 
+            p=self.UIElements["guiFlowLayout1"], c=partial(self.selBtnCallback, 'selpinky'))
+
+
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        sides = ['L_', 'R_', 'C_']
+        self.UIElements["sideMenu"] = cmds.optionMenu('Side', label='side', p=self.UIElements["guiFlowLayout1"]) 
+        for s in sides:
+            cmds.menuItem(label=s, p=self.UIElements["sideMenu"])  
+
+        cmds.separator(w=10, hr=True, p=self.UIElements["guiFlowLayout1"])
+        self.UIElements["righand"] = cmds.button(label="Rig The Hand", width=buttonWidth, height=buttonHeight, bgc=[0.2, 0.4, 0.2], p=self.UIElements["guiFlowLayout1"], c=partial(self.createHandRig, args[0], args[1]))
+            # createHandRig(self, wristControl, wristJoint)
+
+        """ Show the window"""
+        cmds.showWindow(windowName)
+
+  
+  
+    def selBtnCallback(self, joint, *args):
+        if cmds.ls(sl=True) == []:
+            return
+        sel=cmds.ls(sl=True)[0]
+        cmds.button(self.UIElements[joint], edit=True, label=sel, bgc=[0.2, 0.4, 0.2])
+
+
         
     ########  create hand rig function   ########
     def createHandRig(self, wristControl, wristJoint):
@@ -356,6 +420,8 @@ class HandRigger(object):
             fingerJoints = self.getJointDescendants(fingerInWrist)
             
             fingerJoints.append(fingerInWrist)
+            print fingerJoints
+            return
 
             jointIndex = len(fingerJoints)-1;
             fingerList = []
@@ -463,11 +529,12 @@ class Rig_Hand:
             # COMMENTED OUT TO TEST
             #check if first selection is a transform & check if the second selection is a joint
             if cmds.objectType(selection[0]) == "transform" and cmds.objectType(selection[1]) == "joint":
-                hand.createHandRig(selection[0], selection[1])
+                #hand.createHandRig(selection[0], selection[1])
+                hand.ui(selection[0], selection[1])
             else:
                 errorMsg = "HandRigger Error: First selection must be wrist control, the second selection must be top parent joint of wrist."
                 sys.exit(errorMsg)
 
         sys.stdout.write('HandRigger: Finished!')
         
-
+        
