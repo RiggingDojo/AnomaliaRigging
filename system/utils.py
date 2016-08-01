@@ -442,19 +442,19 @@ def createRigContainer(instance, partData, *args):
     rigContainerName = (partData+'_'+instance+'RIG')
     rigContainer = cmds.container(n=rigContainerName)
     return rigContainer
-
+"""
 pairs = [['world_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'World']
-, ['root_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'Root']
-, ['cog_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'COG']
+, ['root_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'Root']]
+, ['cog_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'COG']]
 , ['C_spine_pelvis_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'Pelvis' ]
-, ['C_spine_chest_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'Chest']]
+, ['C_spine_chest_CTRL', 'L_arm_IK_CTRL_GRP', 'L_arm_SETTINGS_CTRL', 'Chest'] 
 
 pairs = [['world_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'World']
-, ['root_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'Root']
-, ['cog_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'COG']
+, ['root_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'Root']]
+, ['cog_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'COG']]
 , ['C_spine_pelvis_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'Pelvis' ]
-, ['C_spine_chest_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'Chest']]
-
+, ['C_spine_chest_CTRL', 'R_arm_IK_CTRL_GRP', 'R_arm_SETTINGS_CTRL', 'Chest'], 
+"""
 
 def createArmSwitches(pairs, instance):
     parents = []

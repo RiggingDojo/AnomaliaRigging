@@ -51,7 +51,7 @@ class AR_UI:
         self.UIElements['menu'] = cmds.menu(label='Utils', tearOff=True)
 
         cmds.menuItem(label='Color Picker', c=self.openColorPalette)
-        cmds.menuItem(label='Connect Skeleton', c=self.openColorPalette)
+        cmds.menuItem(label='Connect Skeleton', c=self.connectSkeleton)
         cmds.menuItem(label='Space Switch', c=self.spaceSwitchUi)
 
         cmds.separator(w=10, hr=True, st='none', p=self.UIElements["guiFlowLayout1"])
