@@ -108,4 +108,4 @@ class Rig_Head:
         ocon = cmds.orientConstraint(tloc, tgrp, mo=True)
 
         cmds.addAttr(self.rig_info['fkcontrols'][0][1], shortName='World', longName='World', defaultValue=0, min=0, max=1, k=True)
-        cmds.connectAttr(self.rig_info['fkcontrols'][0][1]+'.World', ocon + '.C_head_TERMLOCW0')
+        cmds.connectAttr(self.rig_info['fkcontrols'][0][1]+'.World', ocon[0] + '.C_head_TERMLOCW0')
