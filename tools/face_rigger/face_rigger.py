@@ -366,7 +366,7 @@ class Face_Rigger:
                         if cmds.objExists(mirrorsurf) == False:
                             cmds.duplicate(key, n=mirrorsurf)
                             cmds.select(mirrorsurf)
-                            cmds.scale( -1, 1, 1, mirrorsurf)
+                            cmds.scale( 1, -1, 1, mirrorsurf)
                             pos = cmds.xform(mirrorsurf, q=True, ws=True, t=True)
                             rot = cmds.xform(mirrorsurf, q=True, ws=True, ro=True)
                             cmds.delete(mirrorsurf, ch=True)
@@ -417,7 +417,7 @@ class Face_Rigger:
                         if cmds.objExists(mirrorsurf) == False:
                             cmds.duplicate(key, n=mirrorsurf)
                             cmds.select(mirrorsurf)
-                            cmds.scale( -1, 1, 1, mirrorsurf)
+                            cmds.scale( 1, -1, 1, mirrorsurf)
                             pos = cmds.xform(mirrorsurf, q=True, ws=True, t=True)
                             rot = cmds.xform(mirrorsurf, q=True, ws=True, ro=True)
                             cmds.delete(mirrorsurf, ch=True)
@@ -547,7 +547,7 @@ class Face_Rigger:
                 if '_C_' not in ctrlname:
                     mctrlname = ctrlname.replace('_L_', '_R_')
 
-                    mctrlpos = [ctrlpos[0], -ctrlpos[1], ctrlpos[2]]
+                    mctrlpos = [-ctrlpos[0], ctrlpos[1], ctrlpos[2]]
                     mctrlrot = [ctrlrot[0], -ctrlrot[1], -ctrlrot[2]]
                     if cmds.objExists(mctrlname):
                         cmds.delete(mctrlname)
@@ -590,7 +590,7 @@ class Face_Rigger:
 
         face_data['maincontrols'] = mainc
 
-        self.loadControlShapes(controlnodedata)
+        #self.loadControlShapes(controlnodedata)
 
         # Connect the minors to the major controls
         for key, value in info.iteritems():
@@ -1010,7 +1010,7 @@ class Face_Rigger:
         for key, value in info.iteritems():
             for each in info[key]:
                 try:
-                    cmds.setAttr(each[0], each[1])
+                    cmds.setAttr(each[0], each[1]*10)
                 except:pass
 
     def writeBlendSettings(self, *args):
