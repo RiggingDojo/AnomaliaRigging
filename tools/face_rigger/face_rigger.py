@@ -6,11 +6,7 @@ import os
 
 class Face_Rigger:
 
-    def __init__(self):
-        print "Face Rigger"
-
     def ui(self, *args):
-        print "In UI"
         self.UIElements = {}
 
         self.windowName = "VV_FaceRigger"
@@ -18,7 +14,7 @@ class Face_Rigger:
             cmds.deleteUI(self.windowName)
         """ Define UI elements width and height """
         self.windowWidth = 340
-        self.windowHeight = 120
+        self.windowHeight = 300
 
         self.buttonWidth = 340
         self.buttonHeight = 30
@@ -34,10 +30,6 @@ class Face_Rigger:
         self.UIElements["folctrlbutton"] = cmds.button(label='Create Follicle Setup', p=self.UIElements["rowAFlowLayout"],
                                            w=self.buttonWidth,  bgc=[0.3, 0.3, 0.3], ann=annotation, c=self.createFollicleCtrlSetup)
 
-        annotation = " Attach a follicle setup to a main control"
-        self.UIElements["ctrlattachbutton"] = cmds.button(label='Attach Setup To Main', p=self.UIElements["rowAFlowLayout"],
-                                           w=self.buttonWidth,  bgc=[0.3, 0.3, 0.3], ann=annotation, c=self.connectMajorToMinor)
-
         annotation = " Rig the face"
         self.UIElements["rigfacelbutton"] = cmds.button(label='Rig The Face', p=self.UIElements["rowAFlowLayout"],
                                            w=self.buttonWidth,  bgc=[0.3, 0.3, 0.3], ann=annotation, c=self.doFaceRig)
@@ -47,6 +39,37 @@ class Face_Rigger:
 
         self.UIElements["loadlimitbutton"] = cmds.button(label='Load Limits', p=self.UIElements["rowAFlowLayout"],
                                            w=self.buttonWidth,  bgc=[0.3, 0.3, 0.3], ann=annotation, c=self.loadLimits)
+
+        cmds.separator(hr=False, w=5, p=self.UIElements["rowAFlowLayout"])
+
+        self.UIElements["majoraxisMenu"] = cmds.optionMenu('major_transform', label='major transform',
+                                                      ann='Choose the major controls transform.',
+                                                      p=self.UIElements["rowAFlowLayout"])
+        axisOptions = ('.tx', '.ty', '.tz', '.rx', '.ry', '.rz', '.sx', '.sy', '.sz')
+        for item in axisOptions:
+            self.UIElements[item + "majoraxisMenu"] = cmds.menuItem(label=item, p=self.UIElements["majoraxisMenu"])
+
+
+        self.UIElements["minoraxisMenu"] = cmds.optionMenu('minor_transform', label='minor transform',
+                                                           ann='Choose the major controls transform.',
+                                                           p=self.UIElements["rowAFlowLayout"])
+
+        axisOptions = ('.tx', '.ty', '.tz', '.rx', '.ry', '.rz', '.sx', '.sy', '.sz')
+        for item in axisOptions:
+            self.UIElements[item + "minoraxisMenu"] = cmds.menuItem(label=item, p=self.UIElements["minoraxisMenu"])
+
+        self.UIElements['concb'] = cmds.checkBox( label='Conditional' )
+
+        """
+        annotation = " Attach a follicle setup to a main control"
+        self.UIElements["ctrlattachbutton"] = cmds.button(label='Attach Setup To Main',
+                                                          p=self.UIElements["rowAFlowLayout"],
+                                                          w=self.buttonWidth, bgc=[0.3, 0.3, 0.3], ann=annotation,
+                                                          c=self.connectMajorToMinor)
+        """
+        self.UIElements["testbutton"] = cmds.button(label='Test', p=self.UIElements["rowAFlowLayout"],
+                                                         w=self.buttonWidth, bgc=[0.3, 0.3, 0.3], ann=annotation,
+                                                         c=self.test)
 
         """ Show the window"""
         cmds.showWindow(self.windowName)
@@ -137,7 +160,7 @@ class Face_Rigger:
         jnt = cmds.joint(n='rigj_%s' % rootname)
         cmds.setAttr('%s.visibility' % jnt, 0)
 
-        ctrl = cmds.sphere(n='ctrl_%s' % rootname, r=0.01)
+        ctrl = cmds.sphere(n='ctrl_%s' % rootname, r=0.25)
         #ctrlshape = cmds.createNode('clCircle', n='ctrl_%s' % rootname +'Shape')
         #ctrlsp = cmds.listRelatives(ctrlshape, p=True)[0]
         #ctrl = 'ctrl_%s' % rootname
@@ -296,7 +319,7 @@ class Face_Rigger:
 
     def doFaceRig(self, *args):
         face_data={}
-        data = utils.readJson(os.environ["AR_DATA"] + '/tools/face_rigger/face_data_001.json')
+        data = uj.readJson('C:/Users/ryan.griffin/Documents/maya/scripts/rigging/data/face_data_001.json')
         info = json.loads(data)
 
         # Create the base groups.
@@ -381,7 +404,7 @@ class Face_Rigger:
                 cmds.makeIdentity(p[1], apply=True)
 
         # Make a container to hold the face rig stuff
-        #utils.createRigContainer('C_01_', 'FACEDC')
+        part_utils.createRigContainer('C_01_', 'FACEDC')
 
         cmds.parent(mainctrlgrp, plgrp)
 
@@ -522,7 +545,7 @@ class Face_Rigger:
 
             if cmds.objExists(ctrlname):
                 cmds.delete(ctrlname)
-            cmds.circle(n=ctrlname, r=0.05, nr=[1, 0, 0])
+            cmds.circle(n=ctrlname, r=0.5, nr=[1, 0, 0])
             if cmds.objExists('grp_' + ctrlname):
                 cmds.delete('grp_' + ctrlname)
             ctrlgrp = cmds.group(n='grp_' + ctrlname, em=True)
@@ -547,11 +570,11 @@ class Face_Rigger:
                 if '_C_' not in ctrlname:
                     mctrlname = ctrlname.replace('_L_', '_R_')
 
-                    mctrlpos = [-ctrlpos[0], ctrlpos[1], ctrlpos[2]]
+                    mctrlpos = [ctrlpos[0], -ctrlpos[1], ctrlpos[2]]
                     mctrlrot = [ctrlrot[0], -ctrlrot[1], -ctrlrot[2]]
                     if cmds.objExists(mctrlname):
                         cmds.delete(mctrlname)
-                    ctrl = cmds.circle(n=mctrlname, r=0.05, nr=[1, 0, 0])
+                    ctrl = cmds.circle(n=mctrlname, r=0.5, nr=[1, 0, 0])
                     # ctrl = cmds.listRelatives(ctrlshape, p=True)
                     # cmds.rename(ctrl, mctrlname)
                     if cmds.objExists('grp_' + mctrlname):
@@ -590,7 +613,7 @@ class Face_Rigger:
 
         face_data['maincontrols'] = mainc
 
-        #self.loadControlShapes(controlnodedata)
+        self.loadControlShapes(controlnodedata)
 
         # Connect the minors to the major controls
         for key, value in info.iteritems():
@@ -969,9 +992,12 @@ class Face_Rigger:
             except:
                 pass
 
+
+
+
     def collectControlShapes(self, plnodes, *args):
-        filename = os.environ["AR_DATA"] + 'tools/face_rigger/prolocatorlist.json'
-        data = utils.readJson(filename)
+        filename = RIG_CORE_PATH + '/data/prolocatorlist.json'
+        data = uj.readJson(filename)
         info = json.loads(data)
         self.prolocattrlist = info['prolocattrs']
 
@@ -1004,16 +1030,24 @@ class Face_Rigger:
                 except: pass
 
     def loadBlendSettings(self, *args):
-        data = utils.readJson(os.environ["AR_DATA"] + '/tools/face_rigger/face_blend_data_001.json')
+        import maya.cmds as cmds
+        import json
+        import rigging.utils.utils_json as uj
+
+        data = uj.readJson(RIG_CORE_PATH + '/data/face_blend_data_001.json')
         info = json.loads(data)
 
         for key, value in info.iteritems():
             for each in info[key]:
                 try:
-                    cmds.setAttr(each[0], each[1]*10)
+                    cmds.setAttr(each[0], each[1])
                 except:pass
 
     def writeBlendSettings(self, *args):
+        import maya.cmds as cmds
+        import json
+        import rigging.utils.utils_json as uj
+
         cmds.select('ctrl_major*')
 
         sel = cmds.ls(sl=True)
@@ -1028,11 +1062,11 @@ class Face_Rigger:
 
             attr_dict[s]=attrlist
 
-        utils.writeJson(os.environ["AR_DATA"] + '/tools/face_rigger/face_blend_data_001.json', attr_dict)
+        uj.writeJson(RIG_CORE_PATH + '/data/face_blend_data_001.json', attr_dict)
 
     def lockControls(self, *args):
         # Load lock attrs for face controls.
-        data = utils.readJson(os.environ["AR_DATA"] + '/tools/face_rigger/face_lockattrs.json')
+        data = uj.readJson(RIG_CORE_PATH + '/data/face_lockattrs.json')
         info = json.loads(data)
 
         for s in info['lockattrs']:
@@ -1042,7 +1076,7 @@ class Face_Rigger:
 
     def loadLimits(self, *args):
         # Load limits
-        data = utils.readJson(os.environ["AR_DATA"] + '/tools/face_rigger/face_limitattrs.json')
+        data = uj.readJson(RIG_CORE_PATH + '/data/face_limitattrs.json')
         info = json.loads(data)
 
         for key, value in info.iteritems():
@@ -1058,6 +1092,152 @@ class Face_Rigger:
                 cmds.transformLimits(key, esx=(True, True), sx=(info[key][6][0], info[key][6][1]))
                 cmds.transformLimits(key, esy=(True, True), sy=(info[key][7][0], info[key][7][1]))
                 cmds.transformLimits(key, esz=(True, True), sz=(info[key][8][0], info[key][8][1]))
+
+    def test(self, *args):
+        if len(cmds.ls(sl=True)) != 2:
+            cmds.headsUpMessage("Please select a major control then shift select a minor control.")
+        if len(cmds.ls(sl=True)) != 2:
+            print
+            "Not enough items selectted"
+        sel = cmds.ls(sl=True)
+        majorcontrol = sel[0]
+
+        if 'ctrl_major' not in majorcontrol:
+            cmds.headsUpMessage('You must select a major control first')
+
+        minorcontrol = sel[1]
+        if 'ctrl_' not in minorcontrol:
+            cmds.headsUpMessage('You must select a minor control second')
+
+        offsettrans = sel[1].replace('ctrl', 'lctrOffsetTrans')
+        offsetrot = sel[1].replace('ctrl', 'lctrOffsetRot')
+        offsetscale = sel[1].replace('ctrl', 'lctrOffsetScale')
+        follicle = sel[1].replace('ctrl', 'fol') + 'Shape'
+
+        # Query the input and output values from the ui
+        inputattrs = cmds.optionMenu(self.UIElements["majoraxisMenu"], q=True, value=True)
+        outputattrs = cmds.optionMenu(self.UIElements["minoraxisMenu"], q=True, value=True)
+        imputname = inputattrs.replace('.', '')
+        outputname = outputattrs.replace('.', '')
+
+        rotvals = ('.rx', '.ry', '.rz')
+        travalues = ('.tx')
+        uvvals = ('.ty', '.tz')
+        scalevals = ('.sx', '.sy', '.sz')
+
+        # Define the attributes to connect to
+        if outputattrs in rotvals:
+            channel = 'rotate'
+            ingrp = offsetrot
+            outsuffix = outputattrs
+        if outputattrs in travalues:
+            channel = 'translate'
+            ingrp = offsettrans
+            outsuffix = outputattrs
+        if outputattrs == '.ty':
+            channel = 'parameterV'
+            ingrp = follicle
+            outsuffix = '.tx'
+        if outputattrs == '.tz':
+            channel = 'parameterU'
+            ingrp = follicle
+            outsuffix = '.ty'
+        if outputattrs in scalevals:
+            channel = 'scale'
+            ingrp = offsetscale
+            outsuffix = outputattrs
+
+        # Make an mdiv to offset the input value
+        mdivname = "mdiv_offset_" + outputname + "_" + sel[0]
+        mdiv = cmds.shadingNode("multiplyDivide", asUtility=True, n=mdivname)
+
+        # Determine the mdiv input to be connected
+        inputsuffix = outsuffix[-1:].upper()
+
+        pmanode = []
+        # find the connected pma________________________________________.
+        if outputattrs in uvvals:
+            mnode = follicle
+            #shape = cmds.listRelatives(mnode, s=True)
+            cons = cmds.listConnections(mnode, scn=True)
+
+            for c in cons:
+                if 'pma_' in c:
+                    pmanode = c
+                if pmanode == []:
+                    # Make a pma node
+                    pmaname = "pma_blend_" + sel[1]
+                    pmanode = cmds.shadingNode("plusMinusAverage", asUtility=True, n=pmaname)
+        else:
+            if outputattrs in travalues:
+                mnode = offsettrans
+            if outputattrs in rotvals:
+                mnode = offsetrot
+            if outputattrs in scalevals:
+                mnode = offsetscale
+
+            if cmds.nodeType(sel[1]) == 'transform':
+                cons = cmds.listConnections(sel[1], scn=True)
+                for c in cons:
+                    if 'pma_' in c:
+                        print 'True'
+                        pmanode = c
+                else:
+                    # Make a pma node
+                    pmaname = "pma_blend_" + sel[1]
+                    pmanode = cmds.shadingNode("plusMinusAverage", asUtility=True, n=pmaname)
+        print pmanode
+        # Find the next open pma input_______________________________.
+        closed = [0]
+        cons = cmds.listConnections(pmanode)
+        for c in cons:
+            if 'mdiv_' in c:
+                conattrs = cmds.listConnections('%s.outputX' % c, p=True)
+                pmacon = []
+                for each in conattrs:
+                    if 'pma_' in each:
+                        if each not in pmacon:
+                            pmacon.append(each)
+
+                conattrnum = pmacon[0].partition('.input3D[')[2][0]
+                if conattrnum not in closed:
+                    closed.append(int(conattrnum))
+
+        newval = max(closed) + 1
+        input = '[' + str(newval) + ']'
+        print input
+
+        # Add an attribute to the major control for effect amount.
+        tvar = sel[1].replace('ctrl_', '')
+        attrname = tvar + '_' + imputname + '_' + outputname
+        if cmds.attributeQuery(attrname, node=sel[0], exists=True) == False:
+            cmds.addAttr(sel[0], shortName=attrname, longName=attrname, defaultValue=0.0, k=False)
+        cmds.connectAttr(sel[0] + '.' + attrname, mdiv + '.input2' + inputsuffix)
+
+        if cmds.checkBox(self.UIElements['concb'], q=True, v=True) == True:
+            conname = "con_blend_" + sel[1]
+            connode = cmds.shadingNode("condition", asUtility=True, n=conname)
+            cmds.setAttr(connode + '.colorIfFalseB', 0)
+            cmds.setAttr(connode + '.colorIfFalseR', 0)
+            cmds.setAttr(connode + '.colorIfFalseG', 0)
+            cmds.connectAttr(sel[0] + inputattrs, mdiv + '.input1' + inputsuffix)
+
+            cmds.connectAttr(mdiv + '.output', connode + '.colorIfTrue')
+            # connect the control to the mdiv
+            cmds.connectAttr(sel[0] + inputattrs, connode + '.firstTerm')
+            cmds.connectAttr(connode + '.outColor', pmanode + '.input3D' + input)
+        else:
+            # connect the control to the mdiv
+            cmds.connectAttr(sel[0] + inputattrs, mdiv + '.input1' + inputsuffix)
+            cmds.connectAttr(mdiv+'.output', pmanode + '.input3D' + input)
+
+        # Connect the pma node to the appropriate sub control
+        #if cmds.listConnections( ingrp + '.' + channel, d=False, s=True) == []:
+        try:
+            cmds.connectAttr(pmanode + '.output3D', ingrp + '.' + channel)
+        except: pass
+
+
 
 """
 import maya.cmds as cmds
@@ -1262,6 +1442,4 @@ for key, value in info.iteritems():
         cmds.transformLimits(key, esy=(True, True), sy=(info[key][7][0], info[key][7][1]))
         cmds.transformLimits(key, esz=(True, True), sz=(info[key][8][0], info[key][8][1]))
 """
-
-
 
